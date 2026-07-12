@@ -1,0 +1,7 @@
+node_modules/
+.env
+data/
+*.tgz
+scripts/_tmp*
+scripts/_ops*
+.DS_Store

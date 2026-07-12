@@ -1,0 +1,60 @@
+{
+  "version": "0.1.0",
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "bundle": {
+    "active": true,
+    "longDescription": "Fork VPN Client",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": ["resources"],
+    "publisher": "Fork",
+    "externalBin": ["sidecar/verge-mihomo", "sidecar/verge-mihomo-alpha"],
+    "copyright": "GNU General Public License v3.0",
+    "category": "DeveloperTool",
+    "shortDescription": "Fork",
+    "createUpdaterArtifacts": true
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm run web:build",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "pnpm run web:dev",
+    "devUrl": "http://localhost:3000/",
+    "removeUnusedCommands": true
+  },
+  "productName": "Fork",
+  "identifier": "com.fork.client",
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDMxOEJCMURDQkNEQkQ1MzgKUldRNDFkdTgzTEdMTWVEZXRWcmNLNWdSTFpwVGYwdmUwcmlZM1Z3V291V2gwTkRhMnJJQ2Z3LzcK",
+      "endpoints": [
+        "https://your-domain.example/api/v1/client/updater/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["fork"]
+      }
+    }
+  },
+  "app": {
+    "security": {
+      "capabilities": ["desktop-capability", "migrated"],
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**"],
+          "requireLiteralLeadingDot": false
+        }
+      },
+      "csp": null
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# Dependencies / build
+node_modules/
+target/
+dist/
+.pnpm-store/
+
+# Secrets & runtime data
+.env
+.env.*
+!.env.example
+fork-backend/data/*
+!fork-backend/data/.gitkeep
+
+# Packs / logs
+*.tgz
+*.zip
+*.log
+releases/
+
+# OS
+.DS_Store
+Thumbs.db

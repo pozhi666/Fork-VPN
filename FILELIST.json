@@ -1,0 +1,3501 @@
+{
+  "generated_at": "2026-07-12T05:32:44.377Z",
+  "file_count": 699,
+  "files": [
+    {
+      "path": "CLASH_REFACTOR_PLAN.md",
+      "bytes": 43438,
+      "sha256_16": "35bb80fc0992cf85"
+    },
+    {
+      "path": "clash-verge-rev-dev/.clippy.toml",
+      "bytes": 71,
+      "sha256_16": "8054bac896033b70"
+    },
+    {
+      "path": "clash-verge-rev-dev/.devcontainer/devcontainer.json",
+      "bytes": 2893,
+      "sha256_16": "756cd7011e0ccdd4"
+    },
+    {
+      "path": "clash-verge-rev-dev/.editorconfig",
+      "bytes": 179,
+      "sha256_16": "15bd632a1c08e3d2"
+    },
+    {
+      "path": "clash-verge-rev-dev/.git-blame-ignore-revs",
+      "bytes": 1014,
+      "sha256_16": "b2464575b23c3881"
+    },
+    {
+      "path": "clash-verge-rev-dev/.gitattributes",
+      "bytes": 89,
+      "sha256_16": "75c30d3b547bbba7"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/agents/agentic-workflows.agent.md",
+      "bytes": 12700,
+      "sha256_16": "5d9170a4ae6ae862"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/aw/actions-lock.json",
+      "bytes": 3988,
+      "sha256_16": "9b8a82ad000ead8b"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/FUNDING.yml",
+      "bytes": 24,
+      "sha256_16": "0bbdf984007c87ed"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/ISSUE_TEMPLATE/bug_report.yml",
+      "bytes": 4905,
+      "sha256_16": "ca7b300e2d6d3256"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/ISSUE_TEMPLATE/config.yml",
+      "bytes": 234,
+      "sha256_16": "b3a5791676b762be"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/ISSUE_TEMPLATE/feature_request.yml",
+      "bytes": 2794,
+      "sha256_16": "2330e091d85121dc"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/ISSUE_TEMPLATE/i18n_request.yml",
+      "bytes": 1971,
+      "sha256_16": "3dd43680a8fab73a"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/autobuild-check-test.yml",
+      "bytes": 6001,
+      "sha256_16": "f5284aec0b28b08e"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/autobuild.yml",
+      "bytes": 22600,
+      "sha256_16": "4dba9934b94d54c7"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/cargo-audit.yml",
+      "bytes": 729,
+      "sha256_16": "097b2bee74a1f3a3"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/check-commit-needs-build.yml",
+      "bytes": 6638,
+      "sha256_16": "cabef4a0726c67dc"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/clean-old-assets.yml",
+      "bytes": 8255,
+      "sha256_16": "90880143898aa2ab"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/cross_check.yaml",
+      "bytes": 1527,
+      "sha256_16": "75a4b5ee82b555ae"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/dev.yml",
+      "bytes": 5951,
+      "sha256_16": "06c5eeaa2cc83424"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/frontend-check.yml",
+      "bytes": 2047,
+      "sha256_16": "55a95f12a98ea2e8"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/lint-clippy.yml",
+      "bytes": 2514,
+      "sha256_16": "fe3f1b6773cb14d1"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/pr-ai-slop-review.lock.yml",
+      "bytes": 82880,
+      "sha256_16": "811f0c8fdc883f75"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/pr-ai-slop-review.md",
+      "bytes": 13260,
+      "sha256_16": "cbd8306605be8c7c"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/release.yml",
+      "bytes": 26041,
+      "sha256_16": "128e0acefb8862f5"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/rustfmt.yml",
+      "bytes": 1358,
+      "sha256_16": "4c455e2309d9b0a6"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/telegram-notify.yml",
+      "bytes": 3847,
+      "sha256_16": "cc29cb4c76ffbcdf"
+    },
+    {
+      "path": "clash-verge-rev-dev/.github/workflows/updater.yml",
+      "bytes": 1155,
+      "sha256_16": "af8fbd4707ecc2d8"
+    },
+    {
+      "path": "clash-verge-rev-dev/.gitignore",
+      "bytes": 208,
+      "sha256_16": "37003b4cc53b1dc4"
+    },
+    {
+      "path": "clash-verge-rev-dev/.husky/pre-commit",
+      "bytes": 293,
+      "sha256_16": "01e9a351aeea6bb7"
+    },
+    {
+      "path": "clash-verge-rev-dev/.husky/pre-push",
+      "bytes": 180,
+      "sha256_16": "9ed1debaf6c14b4e"
+    },
+    {
+      "path": "clash-verge-rev-dev/.mergify.yml",
+      "bytes": 117,
+      "sha256_16": "e2c753b3db0ec267"
+    },
+    {
+      "path": "clash-verge-rev-dev/.tool-versions",
+      "bytes": 14,
+      "sha256_16": "b10b714912e1c73d"
+    },
+    {
+      "path": "clash-verge-rev-dev/biome.json",
+      "bytes": 877,
+      "sha256_16": "79c86e40ce2738fe"
+    },
+    {
+      "path": "clash-verge-rev-dev/Cargo.lock",
+      "bytes": 240591,
+      "sha256_16": "f33aa67e241caa42"
+    },
+    {
+      "path": "clash-verge-rev-dev/Cargo.toml",
+      "bytes": 3709,
+      "sha256_16": "7d164817ce46bb65"
+    },
+    {
+      "path": "clash-verge-rev-dev/Changelog.md",
+      "bytes": 1686,
+      "sha256_16": "e484838fcc482937"
+    },
+    {
+      "path": "clash-verge-rev-dev/COMMERCIAL.md",
+      "bytes": 2741,
+      "sha256_16": "30c6fdb20af00fb5"
+    },
+    {
+      "path": "clash-verge-rev-dev/CONTRIBUTING.md",
+      "bytes": 2917,
+      "sha256_16": "97796c4d89f95d53"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-draft/bench/benche_me.rs",
+      "bytes": 3386,
+      "sha256_16": "21f5c2ce27da7217"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-draft/Cargo.toml",
+      "bytes": 311,
+      "sha256_16": "9fb6d3d57e7abbea"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-draft/src/lib.rs",
+      "bytes": 4900,
+      "sha256_16": "9bcfbff7219c0f02"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-draft/tests/test_me.rs",
+      "bytes": 10116,
+      "sha256_16": "cbdeff01062150de"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/Cargo.toml",
+      "bytes": 154,
+      "sha256_16": "b3818d2d52fb52c7"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/ar.yml",
+      "bytes": 2483,
+      "sha256_16": "96a24cbc13dde894"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/de.yml",
+      "bytes": 2087,
+      "sha256_16": "cb45a5230175b5f7"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/en.yml",
+      "bytes": 2019,
+      "sha256_16": "7e80d4a53b459d66"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/es.yml",
+      "bytes": 2137,
+      "sha256_16": "3d0fc0eafeb32cf2"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/fa.yml",
+      "bytes": 2455,
+      "sha256_16": "c8d09db9f0b951c6"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/id.yml",
+      "bytes": 1992,
+      "sha256_16": "75ce90e82d1ac4ae"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/jp.yml",
+      "bytes": 2462,
+      "sha256_16": "ac752575938efe30"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/ko.yml",
+      "bytes": 2209,
+      "sha256_16": "c0ba1c9184c02a11"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/ru.yml",
+      "bytes": 2662,
+      "sha256_16": "38dbc955ae84b449"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/tr.yml",
+      "bytes": 2141,
+      "sha256_16": "e84d350c262955d2"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/tt.yml",
+      "bytes": 2723,
+      "sha256_16": "44eac98bf32c4e0f"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/zh.yml",
+      "bytes": 1893,
+      "sha256_16": "4980d069b8c75f44"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/locales/zhtw.yml",
+      "bytes": 1995,
+      "sha256_16": "965d01997860fe84"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-i18n/src/lib.rs",
+      "bytes": 3291,
+      "sha256_16": "292dacf596dfc6c5"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-limiter/Cargo.toml",
+      "bytes": 116,
+      "sha256_16": "7283de5a70df7e4c"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-limiter/src/lib.rs",
+      "bytes": 4286,
+      "sha256_16": "d7e2fd77a2933bb4"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-logging/Cargo.toml",
+      "bytes": 242,
+      "sha256_16": "427d619c3b9abe1a"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-logging/src/lib.rs",
+      "bytes": 3586,
+      "sha256_16": "4537ae368da83230"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-signal/Cargo.toml",
+      "bytes": 236,
+      "sha256_16": "cebf13c7b73677cd"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-signal/src/lib.rs",
+      "bytes": 857,
+      "sha256_16": "fbeedf2555e1ab64"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-signal/src/unix.rs",
+      "bytes": 2499,
+      "sha256_16": "f26748077d2041cf"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/clash-verge-signal/src/windows.rs",
+      "bytes": 2824,
+      "sha256_16": "55a5bff23432b045"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/tauri-plugin-clash-verge-sysinfo/Cargo.toml",
+      "bytes": 622,
+      "sha256_16": "3d39e9b9971082cf"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/tauri-plugin-clash-verge-sysinfo/src/commands.rs",
+      "bytes": 1850,
+      "sha256_16": "35569e43b03af322"
+    },
+    {
+      "path": "clash-verge-rev-dev/crates/tauri-plugin-clash-verge-sysinfo/src/lib.rs",
+      "bytes": 5170,
+      "sha256_16": "f6baa36ab37fd580"
+    },
+    {
+      "path": "clash-verge-rev-dev/deny.toml",
+      "bytes": 11016,
+      "sha256_16": "0ac744dffd09574b"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/Changelog.history.md",
+      "bytes": 69354,
+      "sha256_16": "47eed2a1a25c6376"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/CONTRIBUTING_i18n.md",
+      "bytes": 5776,
+      "sha256_16": "a08df2813c0a2da2"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/FORK_UPDATER.md",
+      "bytes": 1750,
+      "sha256_16": "a6bbbc9eb8a149c6"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/preview_dark.png",
+      "bytes": 321483,
+      "sha256_16": "f512bb1e53702a2d"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/preview_light.png",
+      "bytes": 280078,
+      "sha256_16": "a8041a5001076f4c"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/README_en.md",
+      "bytes": 6654,
+      "sha256_16": "83411a5349867ada"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/README_es.md",
+      "bytes": 6796,
+      "sha256_16": "246a57aba988dce7"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/README_fa.md",
+      "bytes": 9000,
+      "sha256_16": "bf0faa54a8d081a1"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/README_ja.md",
+      "bytes": 7149,
+      "sha256_16": "1d2e3e919eaba95f"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/README_ko.md",
+      "bytes": 6401,
+      "sha256_16": "4b0f6cfa779bc378"
+    },
+    {
+      "path": "clash-verge-rev-dev/docs/README_ru.md",
+      "bytes": 9839,
+      "sha256_16": "30af0060f4b489b2"
+    },
+    {
+      "path": "clash-verge-rev-dev/eslint.config.ts",
+      "bytes": 4666,
+      "sha256_16": "10424873e52ff941"
+    },
+    {
+      "path": "clash-verge-rev-dev/LICENSE",
+      "bytes": 35149,
+      "sha256_16": "3972dc9744f6499f"
+    },
+    {
+      "path": "clash-verge-rev-dev/Makefile.toml",
+      "bytes": 2764,
+      "sha256_16": "fa965863166daead"
+    },
+    {
+      "path": "clash-verge-rev-dev/package.json",
+      "bytes": 4988,
+      "sha256_16": "ef74304bbd46d0e6"
+    },
+    {
+      "path": "clash-verge-rev-dev/pnpm-lock.yaml",
+      "bytes": 271724,
+      "sha256_16": "48ac68588c25b78d"
+    },
+    {
+      "path": "clash-verge-rev-dev/pnpm-workspace.yaml",
+      "bytes": 162,
+      "sha256_16": "e9d6992f7249ac3b"
+    },
+    {
+      "path": "clash-verge-rev-dev/README.md",
+      "bytes": 4890,
+      "sha256_16": "4d04b7f7efd8939f"
+    },
+    {
+      "path": "clash-verge-rev-dev/renovate.json",
+      "bytes": 1595,
+      "sha256_16": "30368cd0b1f1c93e"
+    },
+    {
+      "path": "clash-verge-rev-dev/rust-toolchain.toml",
+      "bytes": 66,
+      "sha256_16": "12dc5d64dbd96c1b"
+    },
+    {
+      "path": "clash-verge-rev-dev/rustfmt.toml",
+      "bytes": 302,
+      "sha256_16": "4530d144d3d3ff85"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts-workflow/bump_changelog.sh",
+      "bytes": 1356,
+      "sha256_16": "6bca2b4cc1bfca69"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts-workflow/get_latest_tauri_commit.bash",
+      "bytes": 1313,
+      "sha256_16": "de0a4b0d9e2bbbaa"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/cleanup-unused-i18n.mjs",
+      "bytes": 37975,
+      "sha256_16": "c7064a25da33e4ae"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/extract_update_logs.sh",
+      "bytes": 1014,
+      "sha256_16": "037d09d21ce044c8"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/fix-alpha_version.mjs",
+      "bytes": 2057,
+      "sha256_16": "d0974624b62aa2e2"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/gen-fork-icons.mjs",
+      "bytes": 2269,
+      "sha256_16": "48a2a63ca7ec8cf7"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/generate-i18n-keys.mjs",
+      "bytes": 3818,
+      "sha256_16": "2d885eb938038b1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/portable-fixed-webview2.mjs",
+      "bytes": 2868,
+      "sha256_16": "386ec33385033784"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/portable.mjs",
+      "bytes": 1629,
+      "sha256_16": "cc722fa7df49818b"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/prebuild.mjs",
+      "bytes": 25506,
+      "sha256_16": "a206ae39598dda32"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/publish-version.mjs",
+      "bytes": 2163,
+      "sha256_16": "d79d83d1c862bbcc"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/release-version.mjs",
+      "bytes": 9275,
+      "sha256_16": "e673106dbbbcfe80"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/set_dns.sh",
+      "bytes": 1878,
+      "sha256_16": "2a8b993e88167993"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/sync-mihomo-version.mjs",
+      "bytes": 2967,
+      "sha256_16": "c98635bb7e004b9a"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/telegram.mjs",
+      "bytes": 5084,
+      "sha256_16": "65e3de987d24873e"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/unset_dns.sh",
+      "bytes": 495,
+      "sha256_16": "bd919a7d24d2e1e1"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/updatelog.mjs",
+      "bytes": 1710,
+      "sha256_16": "33c7cfa7ea8bddb8"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/updater-fixed-webview2.mjs",
+      "bytes": 4676,
+      "sha256_16": "db2ebcfef80d667b"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/updater.mjs",
+      "bytes": 14908,
+      "sha256_16": "725d14a083cb673e"
+    },
+    {
+      "path": "clash-verge-rev-dev/scripts/utils.mjs",
+      "bytes": 466,
+      "sha256_16": "d6cefedeff7f8719"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/.gitignore",
+      "bytes": 106,
+      "sha256_16": "35c199e04362550f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/assets/fonts/SF-Pro.ttf",
+      "bytes": 23138740,
+      "sha256_16": "3447039740fbd1f8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/build.rs",
+      "bytes": 190,
+      "sha256_16": "74399204db9f9a3a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/capabilities/desktop-windows.json",
+      "bytes": 249,
+      "sha256_16": "824715a881064684"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/capabilities/desktop.json",
+      "bytes": 771,
+      "sha256_16": "5c9705065e2cc7ac"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/capabilities/migrated.json",
+      "bytes": 2767,
+      "sha256_16": "3edc711d8e0e4942"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/Cargo.toml",
+      "bytes": 4327,
+      "sha256_16": "c0edd7cd227b4007"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/128x128.png",
+      "bytes": 10551,
+      "sha256_16": "5bc4be27afb88596"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/128x128@2x.png",
+      "bytes": 43122,
+      "sha256_16": "3977e2f5418702b0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/32x32.png",
+      "bytes": 1108,
+      "sha256_16": "b0465d36572eeb3f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/fork-source.png",
+      "bytes": 174679,
+      "sha256_16": "8ae44d90e611e6d3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/icon.icns",
+      "bytes": 480669,
+      "sha256_16": "d2d92740130c05cb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/icon.ico",
+      "bytes": 372526,
+      "sha256_16": "aa0b696e2fc39898"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/icon.png",
+      "bytes": 174679,
+      "sha256_16": "8ae44d90e611e6d3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square107x107Logo.png",
+      "bytes": 10304,
+      "sha256_16": "41b44284dc7fe7b2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square142x142Logo.png",
+      "bytes": 12698,
+      "sha256_16": "200974f238009cda"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square150x150Logo.png",
+      "bytes": 14090,
+      "sha256_16": "d3e34aa4601a385f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square284x284Logo.png",
+      "bytes": 54173,
+      "sha256_16": "71620e26a7bf356b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square30x30Logo.png",
+      "bytes": 1035,
+      "sha256_16": "d66b4f24f7a07c0d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square310x310Logo.png",
+      "bytes": 64675,
+      "sha256_16": "9b53506af06891b8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square44x44Logo.png",
+      "bytes": 1761,
+      "sha256_16": "e55cd2d7f00e5b11"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square71x71Logo.png",
+      "bytes": 3560,
+      "sha256_16": "e21cf38a7805d874"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/Square89x89Logo.png",
+      "bytes": 7152,
+      "sha256_16": "d83f2bfa738a33c3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/StoreLogo.png",
+      "bytes": 2177,
+      "sha256_16": "60383542882520ef"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-mono.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-sys-mono-new.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-sys-mono.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-sys.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-tun-mono-new.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-tun-mono.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon-tun.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/icons/tray-icon.ico",
+      "bytes": 15086,
+      "sha256_16": "0872b644a83d145a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/images/background.png",
+      "bytes": 22367,
+      "sha256_16": "fe490d913155ebf8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/packages/linux/fork.desktop",
+      "bytes": 207,
+      "sha256_16": "3342fa7056eb5265"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/packages/linux/post-install.sh",
+      "bytes": 573,
+      "sha256_16": "95a46ec747dc5254"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/packages/linux/pre-remove.sh",
+      "bytes": 283,
+      "sha256_16": "695efd76172586b3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/packages/macos/entitlements.plist",
+      "bytes": 437,
+      "sha256_16": "546d04630a0956ce"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/packages/macos/info_merge.plist",
+      "bytes": 322,
+      "sha256_16": "248eb5bf4ece580b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/packages/windows/installer.nsi",
+      "bytes": 43932,
+      "sha256_16": "0af9d17fc7cff01c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/app.rs",
+      "bytes": 2361,
+      "sha256_16": "27fd1fd780fbe7e8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/backup.rs",
+      "bytes": 1383,
+      "sha256_16": "a1c5028ea3684dce"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/clash.rs",
+      "bytes": 8438,
+      "sha256_16": "ab88115bd2149a54"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/commercial.rs",
+      "bytes": 5139,
+      "sha256_16": "10b5bdcd8207802b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/lightweight.rs",
+      "bytes": 321,
+      "sha256_16": "100baaff8ff1cb2a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/bahamut.rs",
+      "bytes": 3325,
+      "sha256_16": "0acdad1f2155f7cc"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/bilibili.rs",
+      "bytes": 2280,
+      "sha256_16": "8be83e88ab2ccb35"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/chatgpt.rs",
+      "bytes": 2557,
+      "sha256_16": "fae14d9a914107e2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/claude.rs",
+      "bytes": 1286,
+      "sha256_16": "0f38a9a131c45b97"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/disney_plus.rs",
+      "bytes": 9584,
+      "sha256_16": "1dd870a99b4c3d14"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/gemini.rs",
+      "bytes": 1075,
+      "sha256_16": "bed187181616603d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/mod.rs",
+      "bytes": 3985,
+      "sha256_16": "6e052d6dd5a7dc4c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/netflix.rs",
+      "bytes": 4473,
+      "sha256_16": "855c65a3ead3e8cd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/prime_video.rs",
+      "bytes": 1937,
+      "sha256_16": "dc0b099a77cdca79"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/spotify.rs",
+      "bytes": 1961,
+      "sha256_16": "fbca617216a79fd3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/tiktok.rs",
+      "bytes": 2292,
+      "sha256_16": "48c063c09fea8980"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/types.rs",
+      "bytes": 1591,
+      "sha256_16": "d808625945e7b774"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/utils.rs",
+      "bytes": 2087,
+      "sha256_16": "0138d68384c79f44"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/media_unlock_checker/youtube.rs",
+      "bytes": 2335,
+      "sha256_16": "6bc88d8d60bb0845"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/mod.rs",
+      "bytes": 1401,
+      "sha256_16": "b39db1b372dea1cb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/network.rs",
+      "bytes": 2982,
+      "sha256_16": "992d6ddcff9ec07a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/profile.rs",
+      "bytes": 15484,
+      "sha256_16": "6091fd1406555411"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/proxy.rs",
+      "bytes": 1531,
+      "sha256_16": "0eaf7e520dcc5620"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/runtime.rs",
+      "bytes": 3763,
+      "sha256_16": "2a9d678e92f87999"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/save_profile.rs",
+      "bytes": 6084,
+      "sha256_16": "ee4d25b8d4d896e3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/service.rs",
+      "bytes": 1121,
+      "sha256_16": "ea4e73a88a3e7770"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/system.rs",
+      "bytes": 250,
+      "sha256_16": "1fb29e81e9cf2af8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/uwp.rs",
+      "bytes": 677,
+      "sha256_16": "cc63a4c68338e190"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/validate.rs",
+      "bytes": 3557,
+      "sha256_16": "01355d2ba6295fad"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/verge.rs",
+      "bytes": 449,
+      "sha256_16": "0d69e93fac05ef61"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/cmd/webdav.rs",
+      "bytes": 1503,
+      "sha256_16": "c5585e9fd564cc4e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/commercial/api.rs",
+      "bytes": 14704,
+      "sha256_16": "9e7f609e2c69666c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/commercial/auth.rs",
+      "bytes": 4490,
+      "sha256_16": "135add7900142ec9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/commercial/guard.rs",
+      "bytes": 1385,
+      "sha256_16": "975f003deda8e1b5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/commercial/mod.rs",
+      "bytes": 2353,
+      "sha256_16": "54f895317fc4b5c9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/commercial/sync.rs",
+      "bytes": 3866,
+      "sha256_16": "85112c2cd1805c3a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/clash.rs",
+      "bytes": 16137,
+      "sha256_16": "ddb614058613b29d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/config.rs",
+      "bytes": 13004,
+      "sha256_16": "f7965c6a8f84eaba"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/encrypt.rs",
+      "bytes": 3279,
+      "sha256_16": "36d19e11079f6ade"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/mod.rs",
+      "bytes": 374,
+      "sha256_16": "32d2e0e3b580cf5a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/prfitem.rs",
+      "bytes": 21334,
+      "sha256_16": "1a932e16ec9b1491"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/profiles.rs",
+      "bytes": 23222,
+      "sha256_16": "83c085904cf4bd86"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/runtime.rs",
+      "bytes": 4575,
+      "sha256_16": "109a7ca0f7c697f0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/config/verge.rs",
+      "bytes": 18742,
+      "sha256_16": "7aebcf8c89f613ae"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/constants.rs",
+      "bytes": 2193,
+      "sha256_16": "1e5313b58d805c1a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/autostart.rs",
+      "bytes": 2135,
+      "sha256_16": "6d2c2e87c2c90f61"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/backup.rs",
+      "bytes": 11357,
+      "sha256_16": "23233b11d1718143"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/handle.rs",
+      "bytes": 2858,
+      "sha256_16": "2d06ff57bf1ab236"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/hotkey.rs",
+      "bytes": 17220,
+      "sha256_16": "40e1aba9857b39de"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/logger.rs",
+      "bytes": 9465,
+      "sha256_16": "b1a200a6dcabb8d2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/manager/config.rs",
+      "bytes": 5724,
+      "sha256_16": "0cae5522a4f1f218"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/manager/lifecycle.rs",
+      "bytes": 10371,
+      "sha256_16": "40871b46961a4eba"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/manager/mod.rs",
+      "bytes": 3435,
+      "sha256_16": "e2af98cbf6781e00"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/manager/state.rs",
+      "bytes": 5878,
+      "sha256_16": "65a4d90a0b2971e3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/mod.rs",
+      "bytes": 309,
+      "sha256_16": "62f99c5c5f52f0b0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/notification.rs",
+      "bytes": 2086,
+      "sha256_16": "714c69d704d2daaa"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/service.rs",
+      "bytes": 25602,
+      "sha256_16": "80e085207509c58e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/sysopt.rs",
+      "bytes": 8347,
+      "sha256_16": "0c786311bc3e8fb9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/timer.rs",
+      "bytes": 13297,
+      "sha256_16": "ebf3ae29e926bf68"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/tray/menu_def.rs",
+      "bytes": 2561,
+      "sha256_16": "2e20afb10dd39815"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/tray/mod.rs",
+      "bytes": 36493,
+      "sha256_16": "c7f1d7648195350e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/tray/speed_task.rs",
+      "bytes": 7558,
+      "sha256_16": "f97c1b4cb2ef48a1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/updater.rs",
+      "bytes": 21407,
+      "sha256_16": "a15666810dc54a32"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/validate.rs",
+      "bytes": 16208,
+      "sha256_16": "6f5944535909863c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/core/win_uwp.rs",
+      "bytes": 701,
+      "sha256_16": "6fbb16f1833ca9a2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/builtin/meta_guard.js",
+      "bytes": 225,
+      "sha256_16": "8a8ed879051a3209"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/builtin/meta_hy_alpn.js",
+      "bytes": 366,
+      "sha256_16": "effa86197034f317"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/chain.rs",
+      "bytes": 4853,
+      "sha256_16": "360c1fe1072a8853"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/field.rs",
+      "bytes": 2258,
+      "sha256_16": "18f894d36f629324"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/merge.rs",
+      "bytes": 1583,
+      "sha256_16": "9b8e59562ef1b74f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/mod.rs",
+      "bytes": 36739,
+      "sha256_16": "798ce103ce7974ee"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/script.rs",
+      "bytes": 9401,
+      "sha256_16": "f624aee4e709d06a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/seq.rs",
+      "bytes": 10049,
+      "sha256_16": "676cd5afb126c900"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/enhance/tun.rs",
+      "bytes": 3095,
+      "sha256_16": "0fbd4bd6d38e300a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/backup.rs",
+      "bytes": 25930,
+      "sha256_16": "6570fba83a333537"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/clash.rs",
+      "bytes": 6868,
+      "sha256_16": "87a8d8b90a21bb87"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/config.rs",
+      "bytes": 11085,
+      "sha256_16": "736839eb64c1c1ee"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/icon.rs",
+      "bytes": 9509,
+      "sha256_16": "6fc9722f0355a93b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/mod.rs",
+      "bytes": 252,
+      "sha256_16": "6410300d930813f3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/profile.rs",
+      "bytes": 8403,
+      "sha256_16": "31ddb03ae5c184e8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/proxy.rs",
+      "bytes": 3688,
+      "sha256_16": "2cf3c649a97606f8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/feat/window.rs",
+      "bytes": 5938,
+      "sha256_16": "04288234209e8679"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/lib.rs",
+      "bytes": 19360,
+      "sha256_16": "d743692f27daddf1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/main.rs",
+      "bytes": 985,
+      "sha256_16": "fd8a534a690544fc"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/module/auto_backup.rs",
+      "bytes": 8820,
+      "sha256_16": "43aca2672d1c1448"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/module/lightweight.rs",
+      "bytes": 8136,
+      "sha256_16": "d2e1c8c4f7445b1a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/module/mod.rs",
+      "bytes": 42,
+      "sha256_16": "7b1c9ab3192760fe"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/process/async_handler.rs",
+      "bytes": 769,
+      "sha256_16": "af1420c47079850a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/process/mod.rs",
+      "bytes": 56,
+      "sha256_16": "b68d281409ae1f05"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/connections_stream.rs",
+      "bytes": 5177,
+      "sha256_16": "fefb418975a04e14"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/dirs.rs",
+      "bytes": 7535,
+      "sha256_16": "cd8fbafdd2939ee3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/help.rs",
+      "bytes": 8517,
+      "sha256_16": "fd75720a3516b646"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/init.rs",
+      "bytes": 16123,
+      "sha256_16": "cd247f08d19df928"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/linux/mime.rs",
+      "bytes": 8461,
+      "sha256_16": "e69819a46568951f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/linux/mod.rs",
+      "bytes": 35,
+      "sha256_16": "d99329197a5f64d4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/linux/workarounds.rs",
+      "bytes": 2038,
+      "sha256_16": "8ae9fa020933bafb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/mod.rs",
+      "bytes": 403,
+      "sha256_16": "f2466c5ed5a80396"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/network.rs",
+      "bytes": 9919,
+      "sha256_16": "74558359d6808c6b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/notification.rs",
+      "bytes": 3164,
+      "sha256_16": "b944652bbeb0f1fe"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/resolve/dns.rs",
+      "bytes": 2643,
+      "sha256_16": "6fdd303f72aa3730"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/resolve/mod.rs",
+      "bytes": 7030,
+      "sha256_16": "c3e29662ddd937ba"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/resolve/scheme.rs",
+      "bytes": 5027,
+      "sha256_16": "fe7d82a01baa5888"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/resolve/window_script.rs",
+      "bytes": 3176,
+      "sha256_16": "61602aab9d06bfb7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/resolve/window.rs",
+      "bytes": 9130,
+      "sha256_16": "7bc4ded2b50f13d6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/schtasks.rs",
+      "bytes": 11019,
+      "sha256_16": "a2083b044b9fa5e9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/server.rs",
+      "bytes": 4704,
+      "sha256_16": "bdf9709853ec21e2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/singleton.rs",
+      "bytes": 1517,
+      "sha256_16": "8f56c31f3b11340a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/speed.rs",
+      "bytes": 2560,
+      "sha256_16": "d55e7a5009d45c5f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/tmpl.rs",
+      "bytes": 963,
+      "sha256_16": "e7fb0257dc5ed9ee"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/tray_speed.rs",
+      "bytes": 7369,
+      "sha256_16": "6668caa98f5173bc"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/window_manager.rs",
+      "bytes": 13005,
+      "sha256_16": "49243bffeac30172"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/src/utils/yaml_emitter.rs",
+      "bytes": 3229,
+      "sha256_16": "3b9c03d68ec52ee5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/tauri.conf.json",
+      "bytes": 1614,
+      "sha256_16": "206838c105ef4eab"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/tauri.linux.conf.json",
+      "bytes": 1113,
+      "sha256_16": "729b436fe8d7c654"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/tauri.macos.conf.json",
+      "bytes": 830,
+      "sha256_16": "5c44fdf3ee7c3120"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/tauri.windows.conf.json",
+      "bytes": 807,
+      "sha256_16": "722b7412f606704d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/webview2.arm64.json",
+      "bytes": 1230,
+      "sha256_16": "8da63e7bedc7bee1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/webview2.x64.json",
+      "bytes": 1228,
+      "sha256_16": "3377adaffb2d9da0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src-tauri/webview2.x86.json",
+      "bytes": 1228,
+      "sha256_16": "6416fbfe87003bb9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/fonts/Twemoji.Mozilla.ttf",
+      "bytes": 1454532,
+      "sha256_16": "61db6397b8b32b72"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/component/match_case.svg",
+      "bytes": 1807,
+      "sha256_16": "46ed0a4a1933251c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/component/match_whole_word.svg",
+      "bytes": 2677,
+      "sha256_16": "9b4cdef75f778002"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/component/use_regular_expression.svg",
+      "bytes": 803,
+      "sha256_16": "cf3fece1758c45c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/icon_dark.svg",
+      "bytes": 2684,
+      "sha256_16": "0cdb356107cfae94"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/icon_light.svg",
+      "bytes": 2166,
+      "sha256_16": "4a452a598b9c1373"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/connections.svg",
+      "bytes": 1950,
+      "sha256_16": "34fee46b9e1c31c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/home.svg",
+      "bytes": 900,
+      "sha256_16": "05c2aa7821c42fa4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/logs.svg",
+      "bytes": 1316,
+      "sha256_16": "4660b79a52a0e989"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/profiles.svg",
+      "bytes": 1166,
+      "sha256_16": "55311cbd8e28fe7a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/proxies.svg",
+      "bytes": 1201,
+      "sha256_16": "2ca303cbc6d14e64"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/rules.svg",
+      "bytes": 1455,
+      "sha256_16": "90d24abeec4c88e0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/settings.svg",
+      "bytes": 1812,
+      "sha256_16": "23d71651516dd7ea"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/test.svg",
+      "bytes": 1774,
+      "sha256_16": "17fe47691f703f1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/itemicon/unlock.svg",
+      "bytes": 1020,
+      "sha256_16": "adac09b23fa7b1f9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/logo-64.png",
+      "bytes": 3672,
+      "sha256_16": "431715bd6c2f35f5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/logo.ico",
+      "bytes": 372526,
+      "sha256_16": "aa0b696e2fc39898"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/logo.png",
+      "bytes": 43122,
+      "sha256_16": "3977e2f5418702b0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/logo.svg",
+      "bytes": 4479,
+      "sha256_16": "ec12665ef6a3f0be"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/test/apple.svg",
+      "bytes": 556,
+      "sha256_16": "6fa892e4ffd72741"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/test/github.svg",
+      "bytes": 829,
+      "sha256_16": "1d9607d0f9b84285"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/test/google.svg",
+      "bytes": 901,
+      "sha256_16": "7d3a3b4414b00584"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/image/test/youtube.svg",
+      "bytes": 407,
+      "sha256_16": "aaeda5f35af03cf6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/styles/font.scss",
+      "bytes": 93,
+      "sha256_16": "5b84ea1ccfa0ae98"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/styles/index.scss",
+      "bytes": 1222,
+      "sha256_16": "1a78885f6a328900"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/styles/layout.scss",
+      "bytes": 8058,
+      "sha256_16": "88a5cbcb1ac91a8c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/assets/styles/page.scss",
+      "bytes": 979,
+      "sha256_16": "44121f06e07113f1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-dialog.tsx",
+      "bytes": 1451,
+      "sha256_16": "15e4dcc8501de67d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-empty.tsx",
+      "bytes": 992,
+      "sha256_16": "95e2c609096fda89"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-error-boundary.tsx",
+      "bytes": 776,
+      "sha256_16": "3350b2ec4e2f7527"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-fieldset.tsx",
+      "bytes": 1037,
+      "sha256_16": "ff5f1a488c56245a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-loading-overlay.tsx",
+      "bytes": 760,
+      "sha256_16": "53e055c19631361c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-loading.tsx",
+      "bytes": 835,
+      "sha256_16": "4c6f7e5e8e800786"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-page.tsx",
+      "bytes": 1448,
+      "sha256_16": "4c848205fd463c74"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-search-box.tsx",
+      "bytes": 7700,
+      "sha256_16": "9dac652fe4ca11c9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-split-chip-editor.tsx",
+      "bytes": 5893,
+      "sha256_16": "511a8f1d82605d9e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-styled-select.tsx",
+      "bytes": 451,
+      "sha256_16": "47520238dd3eae94"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-styled-text-field.tsx",
+      "bytes": 639,
+      "sha256_16": "85373c6d9a6b45fe"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-switch.tsx",
+      "bytes": 1478,
+      "sha256_16": "9cdc0d24df40aa04"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/base-tooltip-icon.tsx",
+      "bytes": 622,
+      "sha256_16": "23c95f633e087822"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/index.ts",
+      "bytes": 932,
+      "sha256_16": "755367a511db1704"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/monaco-editor.tsx",
+      "bytes": 806,
+      "sha256_16": "e0232447ddeed7d7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/sticky-virtual-list.tsx",
+      "bytes": 8245,
+      "sha256_16": "5ded67e3991ed720"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/base/virtual-list.tsx",
+      "bytes": 2399,
+      "sha256_16": "d24d2e555aca799b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-column-manager.tsx",
+      "bytes": 4670,
+      "sha256_16": "c1904ac62a5cd832"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-detail.tsx",
+      "bytes": 4704,
+      "sha256_16": "f84057cd37dbc900"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-item.tsx",
+      "bytes": 2387,
+      "sha256_16": "e9579824d7d4195f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-relative-time.tsx",
+      "bytes": 1119,
+      "sha256_16": "05da2bdb4bc77f89"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-row-item.tsx",
+      "bytes": 3216,
+      "sha256_16": "de985a478d360b51"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-row-view.ts",
+      "bytes": 5944,
+      "sha256_16": "52bca3f5b23f185d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/connection/connection-table.tsx",
+      "bytes": 26061,
+      "sha256_16": "e0007412969b3904"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/announcement-banner.tsx",
+      "bytes": 102,
+      "sha256_16": "76702d24363cb1ec"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/announcement-center.tsx",
+      "bytes": 14562,
+      "sha256_16": "5078e344c83d0b17"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/clash-info-card.tsx",
+      "bytes": 3631,
+      "sha256_16": "33b975b95721ff7e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/clash-mode-card.tsx",
+      "bytes": 7367,
+      "sha256_16": "2665ee290dbfb85b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/current-proxy-card.tsx",
+      "bytes": 32138,
+      "sha256_16": "00d6ca094a575739"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/enhanced-canvas-traffic-graph.tsx",
+      "bytes": 37981,
+      "sha256_16": "894ea42f9b601e0c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/enhanced-card.tsx",
+      "bytes": 3124,
+      "sha256_16": "0c02d4c51f6ea74a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/enhanced-traffic-stats.tsx",
+      "bytes": 8272,
+      "sha256_16": "c1d7fe9fc9c15773"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/home-profile-card.tsx",
+      "bytes": 10913,
+      "sha256_16": "0b1b0e69cbe339f1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/ip-info-card.tsx",
+      "bytes": 13573,
+      "sha256_16": "8834f2f3dbde1c75"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/proxy-tun-card.tsx",
+      "bytes": 6548,
+      "sha256_16": "a2fe2f2533bee5c8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/system-info-card.tsx",
+      "bytes": 9269,
+      "sha256_16": "62158be87eed7fa6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/home/test-card.tsx",
+      "bytes": 5929,
+      "sha256_16": "e28cbff31b71f136"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/force-update-dialog.tsx",
+      "bytes": 5623,
+      "sha256_16": "5c1c1b2fa35fe693"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/layout-item.tsx",
+      "bytes": 4055,
+      "sha256_16": "56d026a72903b3ca"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/layout-traffic.tsx",
+      "bytes": 4822,
+      "sha256_16": "afa05506b5a85566"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/notice-manager.tsx",
+      "bytes": 6008,
+      "sha256_16": "d254d634910ab6d0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/scroll-top-button.tsx",
+      "bytes": 968,
+      "sha256_16": "8605a0fb59254375"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/traffic-graph.tsx",
+      "bytes": 7577,
+      "sha256_16": "20ada5d34bb30f1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/update-button.tsx",
+      "bytes": 746,
+      "sha256_16": "8093122260988a25"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/layout/window-controller.tsx",
+      "bytes": 5415,
+      "sha256_16": "7bfe333b377546c2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/log/log-item.tsx",
+      "bytes": 3128,
+      "sha256_16": "fe7de3b153b962fc"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/editor-viewer.tsx",
+      "bytes": 9048,
+      "sha256_16": "8f71c59650aee216"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/file-input.tsx",
+      "bytes": 1558,
+      "sha256_16": "2f6ddb017c012c01"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/group-item.tsx",
+      "bytes": 4245,
+      "sha256_16": "38252e4ba01f76d9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/groups-editor-viewer.tsx",
+      "bytes": 38660,
+      "sha256_16": "44ec7e497c328f2a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/log-viewer.tsx",
+      "bytes": 1624,
+      "sha256_16": "4c780de8546038ab"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/profile-box.tsx",
+      "bytes": 1411,
+      "sha256_16": "981afd310cb9771a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/profile-item.tsx",
+      "bytes": 30239,
+      "sha256_16": "7ae8712b34dc0a6c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/profile-more.tsx",
+      "bytes": 6597,
+      "sha256_16": "8457371a1d4fea83"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/profile-viewer.tsx",
+      "bytes": 11929,
+      "sha256_16": "5559c7d08f3fcd03"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/proxies-editor-viewer.tsx",
+      "bytes": 15296,
+      "sha256_16": "7e827a2f205b42cf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/proxy-item.tsx",
+      "bytes": 3287,
+      "sha256_16": "36d4729e9a2a6e89"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/qr-viewer.tsx",
+      "bytes": 876,
+      "sha256_16": "4c70869663b473e8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/rule-item.tsx",
+      "bytes": 3744,
+      "sha256_16": "7cf4ad3199f721a2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/profile/rules-editor-viewer.tsx",
+      "bytes": 25207,
+      "sha256_16": "98272fb88cfdcf7d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/provider-button.tsx",
+      "bytes": 11792,
+      "sha256_16": "af1102b0b0a2900a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-chain.tsx",
+      "bytes": 17488,
+      "sha256_16": "2243f710f33b36ef"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-group-navigator.tsx",
+      "bytes": 4089,
+      "sha256_16": "e3c9fe4933353ed8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-group-tools.tsx",
+      "bytes": 7689,
+      "sha256_16": "47a3ca2c58588f9d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-groups-chain.tsx",
+      "bytes": 12892,
+      "sha256_16": "fe4b72338f72f88a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-groups.tsx",
+      "bytes": 17067,
+      "sha256_16": "905d3e4119df5d42"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-head.tsx",
+      "bytes": 5600,
+      "sha256_16": "b397eb3212d40d1e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-item-mini.tsx",
+      "bytes": 7210,
+      "sha256_16": "ad853ba6f7a0d0fe"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-item.tsx",
+      "bytes": 5213,
+      "sha256_16": "9a08c41061f4c02f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/proxy-render.tsx",
+      "bytes": 8198,
+      "sha256_16": "ffc4786718f3180f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/use-filter-sort.ts",
+      "bytes": 5559,
+      "sha256_16": "f06fa7d5b55e4099"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/use-head-state.ts",
+      "bytes": 2626,
+      "sha256_16": "8d2fcf706a9d196e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/use-render-list.ts",
+      "bytes": 13857,
+      "sha256_16": "8ec5ec6a4b3d77e2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/proxy/use-window-width.ts",
+      "bytes": 407,
+      "sha256_16": "190bac4b9ae973cd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/rule/provider-button.tsx",
+      "bytes": 9178,
+      "sha256_16": "7cd8399a91f5ed81"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/rule/rule-item.tsx",
+      "bytes": 1641,
+      "sha256_16": "64bd25139a759396"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/auto-backup-settings.tsx",
+      "bytes": 5912,
+      "sha256_16": "303cb240f97f8bbc"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/backup-config-viewer.tsx",
+      "bytes": 9098,
+      "sha256_16": "bac05573c988687c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/backup-history-viewer.tsx",
+      "bytes": 15128,
+      "sha256_16": "1c54e4879de93d0b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/backup-viewer.tsx",
+      "bytes": 8899,
+      "sha256_16": "f85100c5bd5c146d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/backup-webdav-dialog.tsx",
+      "bytes": 2634,
+      "sha256_16": "4a68df2027811c65"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/clash-core-viewer.tsx",
+      "bytes": 5068,
+      "sha256_16": "5563c9d33017f461"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/clash-port-viewer.tsx",
+      "bytes": 14870,
+      "sha256_16": "f66929b8f9f8c28f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/config-viewer.tsx",
+      "bytes": 1514,
+      "sha256_16": "cb119eca9ba12b17"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/controller-viewer.tsx",
+      "bytes": 7451,
+      "sha256_16": "71b22cadca5415b7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/dns-viewer.tsx",
+      "bytes": 35404,
+      "sha256_16": "b73ecb261a839017"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/external-controller-cors.tsx",
+      "bytes": 9220,
+      "sha256_16": "767aeafd9dcb83b4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/guard-state.tsx",
+      "bytes": 2261,
+      "sha256_16": "1eac9e79377afbc1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/hotkey-input.tsx",
+      "bytes": 2776,
+      "sha256_16": "4b8ab4ee1b2cc271"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/hotkey-viewer.tsx",
+      "bytes": 3884,
+      "sha256_16": "7049f66225253ef8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/layout-viewer.tsx",
+      "bytes": 21835,
+      "sha256_16": "b22ed42a4a141846"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/lite-mode-viewer.tsx",
+      "bytes": 4447,
+      "sha256_16": "971f163c5a1ab161"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/misc-viewer.tsx",
+      "bytes": 13725,
+      "sha256_16": "fb0336eccdf532c8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/network-interface-viewer.tsx",
+      "bytes": 3789,
+      "sha256_16": "a661b651283fb123"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/password-input.tsx",
+      "bytes": 1209,
+      "sha256_16": "a662fef01f2fd4bb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/setting-comp.tsx",
+      "bytes": 2021,
+      "sha256_16": "4540509434c687da"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/stack-mode-switch.tsx",
+      "bytes": 965,
+      "sha256_16": "8fcfe6695702fe24"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/sysproxy-viewer.tsx",
+      "bytes": 22458,
+      "sha256_16": "a512708d3fdd6e63"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/theme-mode-switch.tsx",
+      "bytes": 800,
+      "sha256_16": "858f630cc3b2c027"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/theme-viewer.tsx",
+      "bytes": 5926,
+      "sha256_16": "ee4f74d7f4098ec6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/tun-viewer.tsx",
+      "bytes": 10868,
+      "sha256_16": "2283aab47db4cc6d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/tunnels-viewer.tsx",
+      "bytes": 14944,
+      "sha256_16": "13f1b7baea813b0e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/update-viewer.tsx",
+      "bytes": 12466,
+      "sha256_16": "c4c2ac1e59eee255"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/web-ui-item.tsx",
+      "bytes": 4020,
+      "sha256_16": "72c634643cb19bb0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/mods/web-ui-viewer.tsx",
+      "bytes": 4770,
+      "sha256_16": "65ea044b6e8e0511"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/setting-clash.tsx",
+      "bytes": 9517,
+      "sha256_16": "bd1ce196de309b0e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/setting-system.tsx",
+      "bytes": 3038,
+      "sha256_16": "e87436b209ed179d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/setting-verge-advanced.tsx",
+      "bytes": 5353,
+      "sha256_16": "41df90adbe1690c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/setting/setting-verge-basic.tsx",
+      "bytes": 9297,
+      "sha256_16": "7c22c8cdc3ca568e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/shared/proxy-control-switches.tsx",
+      "bytes": 7286,
+      "sha256_16": "7bc7041ec9bc30b8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/shared/traffic-error-boundary.tsx",
+      "bytes": 8110,
+      "sha256_16": "41da5e2a9bfb64df"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/test/test-box.tsx",
+      "bytes": 1196,
+      "sha256_16": "5ff7ad71dd692261"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/test/test-item.tsx",
+      "bytes": 6259,
+      "sha256_16": "385a7c6c65965000"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/components/test/test-viewer.tsx",
+      "bytes": 4871,
+      "sha256_16": "f236454605ce3b64"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/config/commercial.ts",
+      "bytes": 829,
+      "sha256_16": "45911e7bfec49abf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-clash-log.ts",
+      "bytes": 336,
+      "sha256_16": "112744c49ad64d86"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-clash.ts",
+      "bytes": 3311,
+      "sha256_16": "5015127b55ee7e57"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-connection-data.ts",
+      "bytes": 11985,
+      "sha256_16": "54177b422bd3f8d1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-connection-setting.ts",
+      "bytes": 355,
+      "sha256_16": "2b184f5b190080f3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-current-proxy.ts",
+      "bytes": 2265,
+      "sha256_16": "e1fddc74a4ba0f45"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-editor-document.ts",
+      "bytes": 1842,
+      "sha256_16": "76ddc64630901273"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-i18n.ts",
+      "bytes": 1202,
+      "sha256_16": "3f5830886ccca247"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-icon-cache.ts",
+      "bytes": 1352,
+      "sha256_16": "120f3b44398fa098"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-listen.ts",
+      "bytes": 332,
+      "sha256_16": "5f6c0b5f43b154af"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-log-data.ts",
+      "bytes": 4925,
+      "sha256_16": "0a14332b11c90f2f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-memory-data.ts",
+      "bytes": 1743,
+      "sha256_16": "e3e65f96ce783dde"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-mihomo-ws-subscription.ts",
+      "bytes": 9735,
+      "sha256_16": "f683791e6f5befc5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-network.ts",
+      "bytes": 546,
+      "sha256_16": "a1a6e976a825011d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-profiles.ts",
+      "bytes": 2010,
+      "sha256_16": "2497c2294ad19dcd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-proxy-delay-state.ts",
+      "bytes": 2266,
+      "sha256_16": "fc2e64b7b58112f0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-proxy-selection.ts",
+      "bytes": 5087,
+      "sha256_16": "3f904d8157d52fcf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-service-installer.ts",
+      "bytes": 1154,
+      "sha256_16": "8a637d62e0893e2f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-service-uninstaller.ts",
+      "bytes": 1370,
+      "sha256_16": "48154042a924af41"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-system-proxy-state.ts",
+      "bytes": 2572,
+      "sha256_16": "83b792154115e7b4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-system-state.ts",
+      "bytes": 3513,
+      "sha256_16": "292c9c08f8ae6ce7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-traffic-data.ts",
+      "bytes": 1904,
+      "sha256_16": "6107a7f9dd62e780"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-traffic-monitor.ts",
+      "bytes": 12316,
+      "sha256_16": "dac0350b37d9bd36"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-update.ts",
+      "bytes": 2001,
+      "sha256_16": "881ba22f3f04bbf2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-verge.ts",
+      "bytes": 1457,
+      "sha256_16": "e6e688aad5b3ab0f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-visibility.ts",
+      "bytes": 2217,
+      "sha256_16": "86e38e3b312ca6e7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/hooks/use-window.ts",
+      "bytes": 1030,
+      "sha256_16": "08dbf071d65b1680"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/index.html",
+      "bytes": 1238,
+      "sha256_16": "9ae09e8f48bf3cbf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/connections.json",
+      "bytes": 865,
+      "sha256_16": "9104467566cd2a81"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/home.json",
+      "bytes": 4490,
+      "sha256_16": "051f1f435734a25d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/layout.json",
+      "bytes": 671,
+      "sha256_16": "3d08139e129599ae"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/logs.json",
+      "bytes": 144,
+      "sha256_16": "ff716bf3272cffbd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/profiles.json",
+      "bytes": 6460,
+      "sha256_16": "a4cbc6b99eb65bd8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/proxies.json",
+      "bytes": 3443,
+      "sha256_16": "40bccb37cab04d35"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/rules.json",
+      "bytes": 3666,
+      "sha256_16": "2ba874a4bdae88b5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/settings.json",
+      "bytes": 26908,
+      "sha256_16": "a67e135e03bf4110"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/shared.json",
+      "bytes": 5011,
+      "sha256_16": "ae357878ea6c926a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ar/tests.json",
+      "bytes": 1167,
+      "sha256_16": "3499256e76a5acdd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/connections.json",
+      "bytes": 800,
+      "sha256_16": "17a590a36e61c511"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/home.json",
+      "bytes": 4700,
+      "sha256_16": "d3596b6ef78ca9c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/layout.json",
+      "bytes": 628,
+      "sha256_16": "40d2a78459b7f3eb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/logs.json",
+      "bytes": 140,
+      "sha256_16": "81ea565017d8093d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/profiles.json",
+      "bytes": 6285,
+      "sha256_16": "e6893fa179371fce"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/proxies.json",
+      "bytes": 3176,
+      "sha256_16": "bf499152409fc85c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/rules.json",
+      "bytes": 3206,
+      "sha256_16": "786708638a0c2855"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/settings.json",
+      "bytes": 25855,
+      "sha256_16": "44c1393cf842fa6e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/shared.json",
+      "bytes": 5116,
+      "sha256_16": "387278345fe18e13"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/de/tests.json",
+      "bytes": 1226,
+      "sha256_16": "468314739299785c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/connections.json",
+      "bytes": 735,
+      "sha256_16": "e8ad0002f0579825"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/home.json",
+      "bytes": 3649,
+      "sha256_16": "8c52c6ac86928b00"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/layout.json",
+      "bytes": 607,
+      "sha256_16": "9be9f906fb4edc91"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/logs.json",
+      "bytes": 134,
+      "sha256_16": "1ded101672bb282e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/profiles.json",
+      "bytes": 5414,
+      "sha256_16": "11972c181bb00c59"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/proxies.json",
+      "bytes": 3062,
+      "sha256_16": "d42e79c71e7d436b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/rules.json",
+      "bytes": 3047,
+      "sha256_16": "30e0564b9ae5faeb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/settings.json",
+      "bytes": 23170,
+      "sha256_16": "5e54938689be53bd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/shared.json",
+      "bytes": 4289,
+      "sha256_16": "a72ad723073ebf1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/en/tests.json",
+      "bytes": 1089,
+      "sha256_16": "ec417b1e6566681e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/connections.json",
+      "bytes": 815,
+      "sha256_16": "6ff6fb307d933e3e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/home.json",
+      "bytes": 4853,
+      "sha256_16": "b5d6b5838180a6de"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/layout.json",
+      "bytes": 617,
+      "sha256_16": "5feaa6515f349778"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/logs.json",
+      "bytes": 139,
+      "sha256_16": "c27c24e435cbb11d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/profiles.json",
+      "bytes": 6215,
+      "sha256_16": "2c9d4ee0c0e7b343"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/proxies.json",
+      "bytes": 3222,
+      "sha256_16": "6b732454fe8fbe4e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/rules.json",
+      "bytes": 3469,
+      "sha256_16": "d6ed5427b6c8bff0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/settings.json",
+      "bytes": 26481,
+      "sha256_16": "75eda952aded08e6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/shared.json",
+      "bytes": 4956,
+      "sha256_16": "85cecaed3977367f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/es/tests.json",
+      "bytes": 1209,
+      "sha256_16": "c3021fe849787968"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/connections.json",
+      "bytes": 847,
+      "sha256_16": "813ec761f7e2ee6f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/home.json",
+      "bytes": 4503,
+      "sha256_16": "f55da5bcc12e4d64"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/layout.json",
+      "bytes": 657,
+      "sha256_16": "bab08e582f19c279"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/logs.json",
+      "bytes": 143,
+      "sha256_16": "d204401f8f83f725"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/profiles.json",
+      "bytes": 6570,
+      "sha256_16": "69ae5b79c51d1498"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/proxies.json",
+      "bytes": 3616,
+      "sha256_16": "8e53f524a4bcf58b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/rules.json",
+      "bytes": 3746,
+      "sha256_16": "889c378c5a05a774"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/settings.json",
+      "bytes": 28422,
+      "sha256_16": "ae927640afadd38f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/shared.json",
+      "bytes": 5186,
+      "sha256_16": "81cd0c952f6eca87"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/fa/tests.json",
+      "bytes": 1164,
+      "sha256_16": "e7f4a9f801ce09a2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/connections.json",
+      "bytes": 742,
+      "sha256_16": "497569059336c5af"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/home.json",
+      "bytes": 4191,
+      "sha256_16": "b001fa40eead5d7e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/layout.json",
+      "bytes": 602,
+      "sha256_16": "00af117a1fa05065"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/logs.json",
+      "bytes": 133,
+      "sha256_16": "a1126ae3999035cd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/profiles.json",
+      "bytes": 5556,
+      "sha256_16": "4bbcf58cd3915285"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/proxies.json",
+      "bytes": 3168,
+      "sha256_16": "4f151a7a40530b67"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/rules.json",
+      "bytes": 3120,
+      "sha256_16": "c26c9aa33792fb1a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/settings.json",
+      "bytes": 23735,
+      "sha256_16": "e278a7e388ae5649"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/shared.json",
+      "bytes": 4283,
+      "sha256_16": "5739cccc921b5aa9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/id/tests.json",
+      "bytes": 1082,
+      "sha256_16": "fa4171d673efa30d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/connections.json",
+      "bytes": 837,
+      "sha256_16": "f4f91549b9caffbf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/home.json",
+      "bytes": 5211,
+      "sha256_16": "cc72d9753657ad52"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/layout.json",
+      "bytes": 631,
+      "sha256_16": "e00b526807c4f2b1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/logs.json",
+      "bytes": 136,
+      "sha256_16": "f39fb78a3d71f2e4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/profiles.json",
+      "bytes": 6802,
+      "sha256_16": "6401609bf8599876"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/proxies.json",
+      "bytes": 3305,
+      "sha256_16": "a74bce6ab52bbe3a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/rules.json",
+      "bytes": 3435,
+      "sha256_16": "d56f09cedd811d17"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/settings.json",
+      "bytes": 28229,
+      "sha256_16": "dea7bf44e3b83be7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/shared.json",
+      "bytes": 5474,
+      "sha256_16": "fa1ca8055f4170a6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/jp/tests.json",
+      "bytes": 1342,
+      "sha256_16": "61f0825a0869b001"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/connections.json",
+      "bytes": 764,
+      "sha256_16": "e502d3a2194a4628"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/home.json",
+      "bytes": 4590,
+      "sha256_16": "17d4e86b732e0b39"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/layout.json",
+      "bytes": 631,
+      "sha256_16": "5e84e98b0c141c29"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/logs.json",
+      "bytes": 136,
+      "sha256_16": "3124c48e5b68a9c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/profiles.json",
+      "bytes": 5993,
+      "sha256_16": "dc1b21b27cc8aead"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/proxies.json",
+      "bytes": 3393,
+      "sha256_16": "1e9cb39057e70193"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/rules.json",
+      "bytes": 3177,
+      "sha256_16": "d6ea259a9d291358"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/settings.json",
+      "bytes": 24829,
+      "sha256_16": "cb57df69178257c7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/shared.json",
+      "bytes": 3965,
+      "sha256_16": "d7fd2b0cf92804c2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ko/tests.json",
+      "bytes": 1222,
+      "sha256_16": "6619edd517d6aaea"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/connections.json",
+      "bytes": 1051,
+      "sha256_16": "22196070d9334171"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/home.json",
+      "bytes": 5643,
+      "sha256_16": "10fdb02b18c4faf9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/layout.json",
+      "bytes": 868,
+      "sha256_16": "80f92676e54a33d7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/logs.json",
+      "bytes": 166,
+      "sha256_16": "76236b5d0038d7c2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/profiles.json",
+      "bytes": 7874,
+      "sha256_16": "86c88ae4a4247987"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/proxies.json",
+      "bytes": 4071,
+      "sha256_16": "b7239b8644c7b9cf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/rules.json",
+      "bytes": 2676,
+      "sha256_16": "eccd6685ef5986f5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/settings.json",
+      "bytes": 34416,
+      "sha256_16": "344009d18ca3eeed"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/shared.json",
+      "bytes": 6014,
+      "sha256_16": "f3d170084994e3f3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/ru/tests.json",
+      "bytes": 1521,
+      "sha256_16": "1133d7ccc2fa8e6c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/connections.json",
+      "bytes": 762,
+      "sha256_16": "a8a22d5dcdb58cd6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/home.json",
+      "bytes": 4382,
+      "sha256_16": "0644cafe94d2b132"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/layout.json",
+      "bytes": 626,
+      "sha256_16": "b1d88226afc80494"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/logs.json",
+      "bytes": 141,
+      "sha256_16": "7edf37ed7f100d05"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/profiles.json",
+      "bytes": 5873,
+      "sha256_16": "6e0d40fbad2dea1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/proxies.json",
+      "bytes": 3139,
+      "sha256_16": "d3e1671130c83e1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/rules.json",
+      "bytes": 3234,
+      "sha256_16": "f8f104fcbb3e5373"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/settings.json",
+      "bytes": 24801,
+      "sha256_16": "6152749fe4a884c7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/shared.json",
+      "bytes": 4767,
+      "sha256_16": "fc547c59f20c1056"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tr/tests.json",
+      "bytes": 1182,
+      "sha256_16": "1ef557cb14b66473"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/connections.json",
+      "bytes": 932,
+      "sha256_16": "a49a74fc33a1c02e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/home.json",
+      "bytes": 4555,
+      "sha256_16": "fd8e7fc2d17656a6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/layout.json",
+      "bytes": 664,
+      "sha256_16": "744c305696671c57"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/logs.json",
+      "bytes": 142,
+      "sha256_16": "136464dfa2a94bf7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/profiles.json",
+      "bytes": 6808,
+      "sha256_16": "8cd3af76bde83fdb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/proxies.json",
+      "bytes": 3695,
+      "sha256_16": "1ae2bcd00dbaebb5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/rules.json",
+      "bytes": 4090,
+      "sha256_16": "36127f306854caf0"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/settings.json",
+      "bytes": 28263,
+      "sha256_16": "4b2f59c3bf325960"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/shared.json",
+      "bytes": 5176,
+      "sha256_16": "b4f17cd50742281f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/tt/tests.json",
+      "bytes": 1186,
+      "sha256_16": "8bbeb507ee715809"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/connections.json",
+      "bytes": 750,
+      "sha256_16": "f8786fdcf72a61f3"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/home.json",
+      "bytes": 4097,
+      "sha256_16": "865bebfbc506f5c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/layout.json",
+      "bytes": 600,
+      "sha256_16": "b7094b43914de656"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/logs.json",
+      "bytes": 142,
+      "sha256_16": "3669f9262a08d5c1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/profiles.json",
+      "bytes": 5484,
+      "sha256_16": "994945746ae355eb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/proxies.json",
+      "bytes": 2924,
+      "sha256_16": "b0cda9069fea7941"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/rules.json",
+      "bytes": 3061,
+      "sha256_16": "9a811e60e5cf3dd7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/settings.json",
+      "bytes": 22629,
+      "sha256_16": "6903ac7e62aebbfb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/shared.json",
+      "bytes": 4102,
+      "sha256_16": "7ebc7f5e95ae4d24"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zh/tests.json",
+      "bytes": 1138,
+      "sha256_16": "a927959d8a22211d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/connections.json",
+      "bytes": 768,
+      "sha256_16": "b4d19a8ffc27528f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/home.json",
+      "bytes": 4064,
+      "sha256_16": "987dbdf6bd98c60d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/index.ts",
+      "bytes": 595,
+      "sha256_16": "c6882261b8146f12"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/layout.json",
+      "bytes": 600,
+      "sha256_16": "9c51b60e703566a1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/logs.json",
+      "bytes": 142,
+      "sha256_16": "bc74252a1330c983"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/profiles.json",
+      "bytes": 5515,
+      "sha256_16": "a04623143d95e113"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/proxies.json",
+      "bytes": 2940,
+      "sha256_16": "da94118766efb486"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/rules.json",
+      "bytes": 3103,
+      "sha256_16": "d3256a70da6aa863"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/settings.json",
+      "bytes": 22952,
+      "sha256_16": "ef4b71ce7a12ec6a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/shared.json",
+      "bytes": 4120,
+      "sha256_16": "822b7b93baa5a14b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/locales/zhtw/tests.json",
+      "bytes": 1164,
+      "sha256_16": "eac39d9d2ec07a28"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/main.tsx",
+      "bytes": 3556,
+      "sha256_16": "0e5e4a7a6abf08fd"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout.tsx",
+      "bytes": 16346,
+      "sha256_16": "06744aafbcf27e0d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/hooks/index.ts",
+      "bytes": 219,
+      "sha256_16": "a8d9c3f7b52afe79"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/hooks/use-custom-theme.ts",
+      "bytes": 10385,
+      "sha256_16": "1dc0d97a15611a7e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/hooks/use-layout-events.ts",
+      "bytes": 2371,
+      "sha256_16": "5c858d00e343c85f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/hooks/use-loading-overlay.ts",
+      "bytes": 421,
+      "sha256_16": "dc281b082e9eb832"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/hooks/use-nav-menu-order.ts",
+      "bytes": 4029,
+      "sha256_16": "a1a0bb1cd9898506"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/utils/index.ts",
+      "bytes": 125,
+      "sha256_16": "a9307dad8ba7ad87"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/utils/initial-loading-overlay.ts",
+      "bytes": 380,
+      "sha256_16": "bfc9fc6f5a9d7b98"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_layout/utils/notification-handlers.ts",
+      "bytes": 4008,
+      "sha256_16": "8c4df2a18b518895"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_routers.tsx",
+      "bytes": 7164,
+      "sha256_16": "1f380a0baad86d3b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/_theme.tsx",
+      "bytes": 913,
+      "sha256_16": "641c5b66ccb0ffd4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/commercial-account.tsx",
+      "bytes": 23303,
+      "sha256_16": "95c10f3e28e78cf4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/commercial-store.tsx",
+      "bytes": 12793,
+      "sha256_16": "bd48cc6eb439da7f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/connections.tsx",
+      "bytes": 10046,
+      "sha256_16": "3f6e824b2f702a4c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/home.tsx",
+      "bytes": 12006,
+      "sha256_16": "de5c05774a04018c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/login.tsx",
+      "bytes": 3511,
+      "sha256_16": "1e1134af50469dc8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/logs.tsx",
+      "bytes": 5940,
+      "sha256_16": "4501c0ed16802dd5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/profiles.tsx",
+      "bytes": 33342,
+      "sha256_16": "d57d322a3d75e359"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/proxies.tsx",
+      "bytes": 6004,
+      "sha256_16": "cd90b665ac08b9d4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/register.tsx",
+      "bytes": 4336,
+      "sha256_16": "028f6b7e74f68981"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/rules.tsx",
+      "bytes": 2926,
+      "sha256_16": "ec410b0201dec3d6"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/settings.tsx",
+      "bytes": 3355,
+      "sha256_16": "6592b4b84dd4672a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/test.tsx",
+      "bytes": 6045,
+      "sha256_16": "79d6dca03d123814"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/pages/unlock.tsx",
+      "bytes": 15576,
+      "sha256_16": "a46f09ccb6cd1674"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/polyfills/matchMedia.js",
+      "bytes": 1002,
+      "sha256_16": "e19d780021f8447b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/polyfills/RegExp.js",
+      "bytes": 866,
+      "sha256_16": "9ab17de090c66701"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/polyfills/WeakRef.js",
+      "bytes": 315,
+      "sha256_16": "e8497b1ff7098649"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/app-data-context.ts",
+      "bytes": 4376,
+      "sha256_16": "474f8c4c13513115"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/app-data-provider.tsx",
+      "bytes": 7872,
+      "sha256_16": "42d3799a448fcdab"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/auth-provider.tsx",
+      "bytes": 5066,
+      "sha256_16": "d9402f1c9562cd35"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/chain-proxy-context.ts",
+      "bytes": 525,
+      "sha256_16": "42b6103d7d480848"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/chain-proxy-provider.tsx",
+      "bytes": 893,
+      "sha256_16": "e6ddb550266e9104"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/window/index.ts",
+      "bytes": 158,
+      "sha256_16": "05d5afa941c8863d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/window/window-context.ts",
+      "bytes": 559,
+      "sha256_16": "164f93af4b1e20c9"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/providers/window/window-provider.tsx",
+      "bytes": 3214,
+      "sha256_16": "a006b020d1a6c796"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/announcement-state.ts",
+      "bytes": 1927,
+      "sha256_16": "7bcbe31d10128d00"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/api.ts",
+      "bytes": 6725,
+      "sha256_16": "096bdf060ee8a39e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/cmds.ts",
+      "bytes": 14933,
+      "sha256_16": "42606929fcf071f7"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/commercial.ts",
+      "bytes": 6981,
+      "sha256_16": "54090fec680fa38d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/config.ts",
+      "bytes": 722,
+      "sha256_16": "e93214a2319fc473"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/delay.ts",
+      "bytes": 9255,
+      "sha256_16": "752f2f4dd4646e47"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/i18n.ts",
+      "bytes": 4906,
+      "sha256_16": "ded117fb42c1b92f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/monaco.ts",
+      "bytes": 2690,
+      "sha256_16": "cb0aeb2df88ae22e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/notice-service.ts",
+      "bytes": 9079,
+      "sha256_16": "ad46f067fe3c0cf1"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/preload.ts",
+      "bytes": 2808,
+      "sha256_16": "b3ef8d9fd65d8b36"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/query-client.ts",
+      "bytes": 4766,
+      "sha256_16": "790617031e86d039"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/states.ts",
+      "bytes": 648,
+      "sha256_16": "f6b236a4e21bf9ff"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/traffic-monitor-worker.ts",
+      "bytes": 2789,
+      "sha256_16": "98e6ad897ec927ac"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/update.ts",
+      "bytes": 4281,
+      "sha256_16": "2b185c98fc1a2173"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/services/webdav-status.ts",
+      "bytes": 1448,
+      "sha256_16": "4769bbf5feef5d28"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/types/generated/i18n-keys.ts",
+      "bytes": 38137,
+      "sha256_16": "41ee27ccb1dd4eca"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/types/generated/i18n-resources.ts",
+      "bytes": 34379,
+      "sha256_16": "f4853e62b42c6619"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/types/global.d.ts",
+      "bytes": 23523,
+      "sha256_16": "1122d0aa7b1c804a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/types/i18next.d.ts",
+      "bytes": 251,
+      "sha256_16": "540a09d252e52df4"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/types/monaco.ts",
+      "bytes": 157,
+      "sha256_16": "3cf26b7ca4017412"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/types/react-i18next.d.ts",
+      "bytes": 1029,
+      "sha256_16": "243240a8cf32996a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/data-validator.ts",
+      "bytes": 6659,
+      "sha256_16": "bf84cd9abbe1085b"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/debounce.ts",
+      "bytes": 353,
+      "sha256_16": "136100fcb1329c5e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/debug.ts",
+      "bytes": 1967,
+      "sha256_16": "3d027aa0e605cfdf"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/disable-webview-shortcuts.ts",
+      "bytes": 591,
+      "sha256_16": "a55ec632bdd0852d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/get-system.ts",
+      "bytes": 350,
+      "sha256_16": "cc0306ae74b9bf9a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/ignore-case.ts",
+      "bytes": 335,
+      "sha256_16": "4bd41f8137932a3e"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/is-async-function.ts",
+      "bytes": 131,
+      "sha256_16": "7676dd6f1fdd0fd5"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/network.ts",
+      "bytes": 2345,
+      "sha256_16": "63d3299fc01a882d"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/noop.ts",
+      "bytes": 34,
+      "sha256_16": "3209d333f747a8bc"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/parse-hotkey.ts",
+      "bytes": 887,
+      "sha256_16": "80f98fe72ed479f8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/parse-traffic.ts",
+      "bytes": 435,
+      "sha256_16": "608e5598ed0b34eb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/search-matcher.ts",
+      "bytes": 1608,
+      "sha256_16": "b2c4dfd853d6a053"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/traffic-diagnostics.ts",
+      "bytes": 5023,
+      "sha256_16": "e4ec3da9d6067f29"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/traffic-sampler.ts",
+      "bytes": 4540,
+      "sha256_16": "3d6e5b08d2d31b52"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/truncate-str.ts",
+      "bytes": 217,
+      "sha256_16": "07a9662ac894a990"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/anytls.ts",
+      "bytes": 2567,
+      "sha256_16": "0b169de89699cba8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/helpers.ts",
+      "bytes": 9036,
+      "sha256_16": "2f9345c67f63e254"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/http.ts",
+      "bytes": 1582,
+      "sha256_16": "4290109e50686f1c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/hysteria.ts",
+      "bytes": 2558,
+      "sha256_16": "d7718838692f0918"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/hysteria2.ts",
+      "bytes": 1614,
+      "sha256_16": "cca1efdb3bf3bc6f"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/index.ts",
+      "bytes": 1222,
+      "sha256_16": "0d9821007fb73389"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/socks.ts",
+      "bytes": 1675,
+      "sha256_16": "d49b5ef74c43e6f8"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/ss.ts",
+      "bytes": 3470,
+      "sha256_16": "fd7db5335c0ddc36"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/ssr.ts",
+      "bytes": 1974,
+      "sha256_16": "059dea75b0fc7abb"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/trojan.ts",
+      "bytes": 2338,
+      "sha256_16": "b911cd1302dc7fd2"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/tuic.ts",
+      "bytes": 2553,
+      "sha256_16": "cb6e4508d7c7922c"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/vless.ts",
+      "bytes": 5800,
+      "sha256_16": "afd32f50e3adf666"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/vmess.ts",
+      "bytes": 7371,
+      "sha256_16": "c3b8ea2a3c706f32"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/uri-parser/wireguard.ts",
+      "bytes": 2748,
+      "sha256_16": "4f446727e09ce19a"
+    },
+    {
+      "path": "clash-verge-rev-dev/src/utils/yaml.worker.ts",
+      "bytes": 135,
+      "sha256_16": "6b8587b62aa27db0"
+    },
+    {
+      "path": "clash-verge-rev-dev/template/Changelog.md",
+      "bytes": 204,
+      "sha256_16": "f4c40ceaf64e65a0"
+    },
+    {
+      "path": "clash-verge-rev-dev/tsconfig.json",
+      "bytes": 469,
+      "sha256_16": "df5376a09b544b21"
+    },
+    {
+      "path": "clash-verge-rev-dev/vite.config.mts",
+      "bytes": 940,
+      "sha256_16": "5ec0c6b1147650d8"
+    },
+    {
+      "path": "docs/OPS_DONE.md",
+      "bytes": 272,
+      "sha256_16": "97b43ad07a42ef46"
+    },
+    {
+      "path": "fork-backend/.gitignore",
+      "bytes": 69,
+      "sha256_16": "ab01df1297a61b71"
+    },
+    {
+      "path": "fork-backend/package-lock.json",
+      "bytes": 38361,
+      "sha256_16": "f1a9f6fabdf10fe6"
+    },
+    {
+      "path": "fork-backend/package.json",
+      "bytes": 452,
+      "sha256_16": "17b4170b79c16fde"
+    },
+    {
+      "path": "fork-backend/public/app.js",
+      "bytes": 40697,
+      "sha256_16": "4444b88d280849f3"
+    },
+    {
+      "path": "fork-backend/public/forkvpnadmin/app.js",
+      "bytes": 40697,
+      "sha256_16": "4444b88d280849f3"
+    },
+    {
+      "path": "fork-backend/public/forkvpnadmin/index.html",
+      "bytes": 34677,
+      "sha256_16": "a003ad7493287b7d"
+    },
+    {
+      "path": "fork-backend/public/forkvpnadmin/styles.css",
+      "bytes": 16596,
+      "sha256_16": "7ec4bfdb3b07728e"
+    },
+    {
+      "path": "fork-backend/public/index.html",
+      "bytes": 6015,
+      "sha256_16": "d7394f61ead6ced6"
+    },
+    {
+      "path": "fork-backend/public/landing.css",
+      "bytes": 7687,
+      "sha256_16": "7853066eed2e5c38"
+    },
+    {
+      "path": "fork-backend/public/landing.js",
+      "bytes": 2694,
+      "sha256_16": "7306d0960041763d"
+    },
+    {
+      "path": "fork-backend/public/pay-return.html",
+      "bytes": 1378,
+      "sha256_16": "38c2f7453e918600"
+    },
+    {
+      "path": "fork-backend/public/styles.css",
+      "bytes": 16596,
+      "sha256_16": "7ec4bfdb3b07728e"
+    },
+    {
+      "path": "fork-backend/README.md",
+      "bytes": 3832,
+      "sha256_16": "fa4fd6b3f1320f4c"
+    },
+    {
+      "path": "fork-backend/scripts/bootstrap-admin.mjs",
+      "bytes": 3760,
+      "sha256_16": "c068a660f9d9d492"
+    },
+    {
+      "path": "fork-backend/src/access.js",
+      "bytes": 5515,
+      "sha256_16": "0a82b13a8db7e1b0"
+    },
+    {
+      "path": "fork-backend/src/auth.js",
+      "bytes": 1526,
+      "sha256_16": "06c791e96d964d0e"
+    },
+    {
+      "path": "fork-backend/src/config.js",
+      "bytes": 5945,
+      "sha256_16": "fcd7524bc5b09053"
+    },
+    {
+      "path": "fork-backend/src/db.js",
+      "bytes": 1093,
+      "sha256_16": "237e2166d2dde7b8"
+    },
+    {
+      "path": "fork-backend/src/ezpay.js",
+      "bytes": 2550,
+      "sha256_16": "ed397070613bb78b"
+    },
+    {
+      "path": "fork-backend/src/routes.js",
+      "bytes": 55502,
+      "sha256_16": "eef8d294fc08d9d8"
+    },
+    {
+      "path": "fork-backend/src/seed.js",
+      "bytes": 6056,
+      "sha256_16": "4f73342ccaa4f5e2"
+    },
+    {
+      "path": "fork-backend/src/server.js",
+      "bytes": 2904,
+      "sha256_16": "0e0c243201f656dd"
+    },
+    {
+      "path": "fork-backend/src/subscription.js",
+      "bytes": 9357,
+      "sha256_16": "5b8732b8f40ca37f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5986,
+      "sha256_16": "bdb8d77af68d15a5"
+    },
+    {
+      "path": "scripts/pack-source-release.mjs",
+      "bytes": 12315,
+      "sha256_16": "73ba1751cef69248"
+    },
+    {
+      "path": "start-fork.bat",
+      "bytes": 143,
+      "sha256_16": "2e3af9927cc06b98"
+    },
+    {
+      "path": "start-fork.ps1",
+      "bytes": 5814,
+      "sha256_16": "ba25c80b1e146577"
+    }
+  ]
+}

@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fork Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="toast-root"></div>
+
+    <!-- Login -->
+    <section id="login-view" class="login-page">
+      <div class="login-shell">
+        <div class="login-brand">
+          <div class="brand-mark">F</div>
+          <div>
+            <h1>Fork Console</h1>
+            <p>用户 · 订阅源 · 商品 · 运营配置</p>
+          </div>
+        </div>
+        <form id="login-form" class="login-form" autocomplete="on">
+          <div class="field">
+            <label for="admin-user">管理员账号</label>
+            <input id="admin-user" name="username" autocomplete="username" placeholder="admin" />
+          </div>
+          <div class="field">
+            <label for="admin-pass">密码</label>
+            <input
+              id="admin-pass"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+            />
+          </div>
+          <p id="login-error" class="form-error" hidden></p>
+          <button type="submit" id="btn-login" class="btn btn-primary btn-block">
+            登录控制台
+          </button>
+        </form>
+        <p class="login-foot">仅限授权管理员 · 本地默认端口 8787</p>
+      </div>
+    </section>
+
+    <!-- Main -->
+    <section id="main-view" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-mark sm">F</div>
+          <div>
+            <strong>Fork</strong>
+            <span>Admin Console</span>
+          </div>
+        </div>
+        <nav class="nav" id="side-nav">
+          <button type="button" data-tab="overview" class="nav-item active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg> 概览
+          </button>
+          <button type="button" data-tab="users" class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> 用户
+          </button>
+          <button type="button" data-tab="sources" class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg> 订阅源
+          </button>
+          <button type="button" data-tab="plans" class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> 商品套餐
+          </button>
+          <button type="button" data-tab="coupons" class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"></path></svg> 兑换码
+          </button>
+          <button type="button" data-tab="announcements" class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3z"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> 公告
+          </button>
+          <button type="button" data-tab="settings" class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-ico"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-2.82.17l-.2.2a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .17-2.82l-.2-.2a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 2.82-.17l.2-.2a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.17 2.82l.2.2a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> 系统设置
+          </button>
+        </nav>
+        <div class="sidebar-foot">
+          <div class="admin-chip">
+            <span class="avatar" id="admin-avatar">A</span>
+            <span id="admin-name">admin</span>
+          </div>
+          <button type="button" id="btn-logout" class="btn btn-ghost btn-sm">退出</button>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div>
+            <h2 id="page-title">概览</h2>
+            <p id="page-desc" class="page-desc">运营数据一览</p>
+          </div>
+          <div class="topbar-actions">
+            <button type="button" id="btn-refresh" class="btn btn-ghost btn-sm">刷新</button>
+          </div>
+        </header>
+
+        <div class="content">
+          <!-- Overview -->
+          <div id="tab-overview" class="tab-panel">
+            <div class="stats" id="stats"></div>
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>运营说明</h3>
+                </div>
+                <ul class="hint-list">
+                  <li><b>订阅源</b>：只是线路池（公开 / 需商品解锁），不设价格</li>
+                  <li><b>商品</b>：才分免费 / 付费（价格），绑定某条源</li>
+                  <li>公开源登录即用；锁定源购买商品后解锁</li>
+                  <li>客户端「同步官方线路」后刷新代理页节点</li>
+                </ul>
+              </div>
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>快捷操作</h3>
+                </div>
+                <div class="quick-actions">
+                  <button type="button" class="btn btn-secondary" data-goto="users">管理用户</button>
+                  <button type="button" class="btn btn-secondary" data-goto="sources">配置订阅源</button>
+                  <button type="button" class="btn btn-secondary" data-goto="plans">管理商品</button>
+                  <button type="button" class="btn btn-secondary" data-goto="coupons">兑换码</button>
+                  <button type="button" class="btn btn-secondary" data-goto="announcements">发布公告</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users -->
+          <div id="tab-users" class="tab-panel hidden">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>用户列表</h3>
+                  <p class="muted">权限 = 公开线路 + 已购商品解锁的线路 · 支持搜索、改密、代开、删除</p>
+                </div>
+                <div class="panel-actions">
+                  <input id="user-search" class="search-input" placeholder="搜索用户名…" />
+                  <button type="button" id="btn-create-user" class="btn btn-primary">新建用户</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>用户</th>
+                      <th>权益</th>
+                      <th>状态</th>
+                      <th>权益到期</th>
+                      <th class="col-actions">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="users-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sources -->
+          <div id="tab-sources" class="tab-panel hidden">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>订阅源</h3>
+                  <p class="muted">线路池：公开=全员可用；需解锁=绑定到商品后才可用（价格在商品上设）</p>
+                </div>
+                <button type="button" id="btn-create-source" class="btn btn-primary">添加订阅源</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>名称</th>
+                      <th>类型</th>
+                      <th>来源</th>
+                      <th>备注</th>
+                      <th class="col-actions">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sources-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="nodes-panel" class="panel nodes-panel hidden">
+              <div class="panel-head">
+                <div>
+                  <h3 id="nodes-title">节点预览</h3>
+                  <p id="nodes-meta" class="muted"></p>
+                </div>
+                <button type="button" id="btn-close-nodes" class="btn btn-ghost btn-sm">收起</button>
+              </div>
+              <p id="nodes-error" class="form-error" hidden></p>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 48px">#</th>
+                      <th>名称</th>
+                      <th>类型</th>
+                      <th>服务器</th>
+                      <th>端口</th>
+                    </tr>
+                  </thead>
+                  <tbody id="nodes-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plans -->
+          <div id="tab-plans" class="tab-panel hidden">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>商品套餐</h3>
+                  <p class="muted">价格 = 0 → 客户端「免费专区」；价格 &gt; 0 →「付费商品」。绑定要解锁的线路源</p>
+                </div>
+                <button type="button" id="btn-create-plan" class="btn btn-primary">新建商品</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>商品</th>
+                      <th>价格 / 上架</th>
+                      <th>绑定订阅源</th>
+                      <th>有效期</th>
+                      <th>说明</th>
+                      <th class="col-actions">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="plans-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coupons -->
+          <div id="tab-coupons" class="tab-panel hidden">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>生成兑换码</h3>
+                  <p class="muted">用户在客户端「个人中心」输入兑换码即可开通对应商品</p>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="cp-product">绑定商品</label>
+                  <select id="cp-product"></select>
+                </div>
+                <div class="field">
+                  <label for="cp-days">天数（0=用商品默认）</label>
+                  <input id="cp-days" type="number" min="0" value="30" />
+                </div>
+                <div class="field">
+                  <label for="cp-max">总可用次数（0=无限）</label>
+                  <input id="cp-max" type="number" min="0" value="1" />
+                </div>
+                <div class="field">
+                  <label for="cp-count">生成数量</label>
+                  <input id="cp-count" type="number" min="1" max="100" value="1" />
+                </div>
+                <div class="field">
+                  <label for="cp-code">指定码（批量生成时忽略）</label>
+                  <input id="cp-code" placeholder="留空则自动生成" />
+                </div>
+                <div class="field">
+                  <label for="cp-expire-days">码有效期（天，0=不过期）</label>
+                  <input id="cp-expire-days" type="number" min="0" value="0" />
+                </div>
+                <div class="field" style="grid-column:1/-1">
+                  <label for="cp-note">备注</label>
+                  <input id="cp-note" placeholder="渠道/活动名" />
+                </div>
+                <div class="form-actions">
+                  <button type="button" id="btn-create-coupon" class="btn btn-primary">生成</button>
+                </div>
+              </div>
+              <p id="cp-result" class="muted" style="margin-top:8px;word-break:break-all"></p>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>兑换码列表</h3>
+                  <p class="muted">可停用 / 删除</p>
+                </div>
+                <button type="button" id="btn-refresh-coupons" class="btn btn-ghost btn-sm">刷新</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>兑换码</th>
+                      <th>商品 / 天数</th>
+                      <th>用量</th>
+                      <th>状态</th>
+                      <th>码过期</th>
+                      <th class="col-actions">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="coupons-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Announcements -->
+          <div id="tab-announcements" class="tab-panel hidden">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>客户端公告</h3>
+                  <p class="muted">下发给登录用户的运营通知</p>
+                </div>
+                <button type="button" id="btn-create-ann" class="btn btn-primary">发布公告</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>标题</th>
+                      <th>内容</th>
+                      <th>状态</th>
+                      <th>时间</th>
+                      <th class="col-actions">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ann-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div id="tab-settings" class="tab-panel hidden">
+            <div class="grid-2">
+              <div class="panel form-panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>运营设置</h3>
+                    <p class="muted">影响客户端注册与产品展示名</p>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="set-product">产品名</label>
+                    <input id="set-product" />
+                  </div>
+                  <div class="field">
+                    <label for="set-register">允许用户注册</label>
+                    <select id="set-register">
+                      <option value="1">允许</option>
+                      <option value="0">关闭</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="set-default-plan">注册默认有效期模板</label>
+                    <input id="set-default-plan" placeholder="trial" />
+                  </div>
+                  <div class="form-actions">
+                    <button type="button" id="btn-save-settings" class="btn btn-primary">保存设置</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel form-panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>客户端版本更新</h3>
+                    <p class="muted">
+                      与原版 Clash 相同：客户端用 Tauri 更新器<strong>自动下载并安装</strong>。
+                      请填写版本号 + 安装包直链 + 构建产物里的 <code>.sig</code> 签名内容。
+                      清单地址：<code>/api/v1/client/updater/latest.json</code>
+                    </p>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="upd-enabled">启用版本检查</label>
+                    <select id="upd-enabled">
+                      <option value="1">开启</option>
+                      <option value="0">关闭</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="upd-mode">更新策略</label>
+                    <select id="upd-mode">
+                      <option value="optional">可选更新（可稍后）</option>
+                      <option value="force">强制更新（不可跳过）</option>
+                      <option value="off">不下发（等同关闭）</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="upd-ver">最新版本号</label>
+                    <input id="upd-ver" placeholder="例如 0.1.1（须与安装包版本一致）" />
+                  </div>
+                  <div class="field">
+                    <label for="upd-title">弹窗标题</label>
+                    <input id="upd-title" placeholder="发现新版本" />
+                  </div>
+                  <div class="field" style="grid-column:1/-1">
+                    <label for="upd-body">更新说明</label>
+                    <textarea id="upd-body" rows="3" style="font-family:inherit" placeholder="本次更新内容…"></textarea>
+                  </div>
+                  <div class="field" style="grid-column:1/-1">
+                    <label for="upd-win-url">Windows x64 安装包 URL</label>
+                    <input id="upd-win-url" placeholder="https://your.cdn/Fork_0.1.1_x64-setup.exe" />
+                  </div>
+                  <div class="field" style="grid-column:1/-1">
+                    <label for="upd-win-sig">Windows 签名（.sig 文件全文）</label>
+                    <textarea id="upd-win-sig" rows="4" style="font-family:ui-monospace,monospace;font-size:12px" placeholder="dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkK..."></textarea>
+                  </div>
+                  <div class="form-actions">
+                    <button type="button" id="btn-save-update" class="btn btn-primary">保存更新策略</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel form-panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>管理员密码</h3>
+                    <p class="muted">修改当前登录管理员的密码</p>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="adm-old">原密码</label>
+                    <input id="adm-old" type="password" />
+                  </div>
+                  <div class="field">
+                    <label for="adm-new">新密码</label>
+                    <input id="adm-new" type="password" placeholder="至少 6 位" />
+                  </div>
+                  <div class="field">
+                    <label for="adm-new2">确认新密码</label>
+                    <input id="adm-new2" type="password" />
+                  </div>
+                  <div class="form-actions">
+                    <button type="button" id="btn-change-admin-pw" class="btn btn-primary">修改密码</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Source modal -->
+    <div id="modal-source" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="modal-source-title">订阅源</h3>
+          <button type="button" class="btn-icon" data-close="modal-source" aria-label="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="src-id" />
+          <div class="field">
+            <label for="src-name">名称</label>
+            <input id="src-name" placeholder="例如：美国线路" />
+          </div>
+          <div class="field">
+            <label for="src-tier">访问方式（不是价格）</label>
+            <select id="src-tier">
+              <option value="public">公开线路 · 登录即可用</option>
+              <option value="locked">需解锁 · 购买/代开商品后可用</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="src-url">订阅 URL</label>
+            <input id="src-url" placeholder="https://… 服务端代拉，客户端不可见" />
+          </div>
+          <div class="field">
+            <label for="src-proxy">拉取代理（国内专线必填）</label>
+            <input
+              id="src-proxy"
+              placeholder="http://127.0.0.1:7890 或 socks5://user:pass@host:1080 · 走能访问国内的代理"
+            />
+            <p class="muted" style="margin:4px 0 0">
+              后端在香港；仅限国内的订阅链接需经国内出口代理拉取。也可不设 URL，改粘贴 YAML。
+            </p>
+          </div>
+          <div class="field">
+            <label for="src-ua">拉取 User-Agent（可选）</label>
+            <input id="src-ua" placeholder="默认 ClashMeta；部分机场校验 UA" />
+          </div>
+          <div class="field">
+            <label for="src-yaml">Clash YAML（优先于 URL）</label>
+            <textarea id="src-yaml" rows="8" placeholder="proxies:&#10;  - name: …"></textarea>
+          </div>
+          <div class="field">
+            <label for="src-notes">备注</label>
+            <input id="src-notes" placeholder="内部备注，可选" />
+          </div>
+          <p id="modal-source-error" class="form-error" hidden></p>
+          <div id="modal-nodes" class="preview-box hidden">
+            <div class="preview-head">解析预览</div>
+            <div class="table-wrap compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>名称</th>
+                    <th>类型</th>
+                    <th>服务器</th>
+                    <th>端口</th>
+                  </tr>
+                </thead>
+                <tbody id="modal-nodes-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" id="btn-preview" class="btn btn-secondary">解析节点</button>
+          <div class="spacer"></div>
+          <button type="button" data-close="modal-source" class="btn btn-ghost">取消</button>
+          <button type="button" id="btn-save-source" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User modal -->
+    <div id="modal-user" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card modal-sm">
+        <div class="modal-head">
+          <h3 id="modal-user-title">新建用户</h3>
+          <button type="button" class="btn-icon" data-close="modal-user" aria-label="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="user-edit-id" />
+          <div class="field">
+            <label for="user-name">用户名</label>
+            <input id="user-name" />
+          </div>
+          <div class="field" id="user-pass-field">
+            <label for="user-pass">密码</label>
+            <input id="user-pass" type="password" />
+          </div>
+          <div class="field">
+            <label for="user-plan">代开商品（可选）</label>
+            <select id="user-plan"></select>
+          </div>
+          <div class="field" id="user-days-field">
+            <label for="user-days">有效天数</label>
+            <input id="user-days" type="number" min="1" value="30" />
+          </div>
+          <p id="modal-user-error" class="form-error" hidden></p>
+        </div>
+        <div class="modal-foot">
+          <button type="button" data-close="modal-user" class="btn btn-ghost">取消</button>
+          <button type="button" id="btn-save-user" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan modal -->
+    <div id="modal-plan" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card modal-sm">
+        <div class="modal-head">
+          <h3 id="modal-plan-title">商品</h3>
+          <button type="button" class="btn-icon" data-close="modal-plan" aria-label="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="plan-id" />
+          <div class="field">
+            <label for="plan-name">商品名</label>
+            <input id="plan-name" placeholder="月度会员" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="plan-price">价格（元）· 填 0 进免费专区</label>
+              <input id="plan-price" type="number" min="0" step="0.01" value="0" />
+            </div>
+            <div class="field">
+              <label for="plan-days">有效天数</label>
+              <input id="plan-days" type="number" min="1" value="30" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="plan-source">绑定线路（订阅源）</label>
+            <select id="plan-source"></select>
+            <p class="muted" style="margin:4px 0 0">用户开通本商品后，获得该线路节点</p>
+          </div>
+          <div class="field">
+            <label for="plan-desc">说明</label>
+            <input id="plan-desc" placeholder="显示在客户端" />
+          </div>
+          <div class="field">
+            <label for="plan-sale">上架状态</label>
+            <select id="plan-sale">
+              <option value="1">在售</option>
+              <option value="0">下架</option>
+            </select>
+          </div>
+          <p id="modal-plan-error" class="form-error" hidden></p>
+        </div>
+        <div class="modal-foot">
+          <button type="button" data-close="modal-plan" class="btn btn-ghost">取消</button>
+          <button type="button" id="btn-save-plan" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm modal -->
+    <div id="modal-confirm" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card modal-sm">
+        <div class="modal-head">
+          <h3 id="confirm-title">确认</h3>
+          <button type="button" class="btn-icon" data-close="modal-confirm" aria-label="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-msg" class="confirm-msg"></p>
+        </div>
+        <div class="modal-foot">
+          <button type="button" data-close="modal-confirm" class="btn btn-ghost">取消</button>
+          <button type="button" id="btn-confirm-ok" class="btn btn-danger">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User detail modal -->
+    <div id="modal-user-detail" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="ud-title">用户详情</h3>
+          <button type="button" class="btn-icon" data-close="modal-user-detail" aria-label="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="ud-id" />
+          <div class="field-row">
+            <div class="field">
+              <label>用户名</label>
+              <input id="ud-name" disabled />
+            </div>
+            <div class="field">
+              <label>状态</label>
+              <select id="ud-status">
+                <option value="active">正常</option>
+                <option value="disabled">禁用</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="ud-expire">账号到期（本地时间）</label>
+              <input id="ud-expire" type="datetime-local" />
+            </div>
+            <div class="field">
+              <label for="ud-pass">重置密码</label>
+              <input id="ud-pass" type="text" placeholder="留空不改；至少 6 位" />
+            </div>
+          </div>
+          <div class="field">
+            <label>当前权益</label>
+            <div id="ud-purchases" class="purchase-list"></div>
+          </div>
+          <p id="ud-error" class="form-error" hidden></p>
+        </div>
+        <div class="modal-foot">
+          <button type="button" id="btn-ud-delete" class="btn btn-danger">删除用户</button>
+          <div class="spacer"></div>
+          <button type="button" id="btn-ud-grant" class="btn btn-secondary">代开商品</button>
+          <button type="button" data-close="modal-user-detail" class="btn btn-ghost">关闭</button>
+          <button type="button" id="btn-ud-save" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcement modal -->
+    <div id="modal-ann" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card modal-sm">
+        <div class="modal-head">
+          <h3 id="ann-modal-title">公告</h3>
+          <button type="button" class="btn-icon" data-close="modal-ann" aria-label="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="ann-id" />
+          <div class="field">
+            <label for="ann-title">标题</label>
+            <input id="ann-title" />
+          </div>
+          <div class="field">
+            <label for="ann-body">内容</label>
+            <textarea id="ann-body" rows="5" style="font-family: inherit"></textarea>
+          </div>
+          <div class="field">
+            <label for="ann-active">状态</label>
+            <select id="ann-active">
+              <option value="1">发布中</option>
+              <option value="0">已下架</option>
+            </select>
+          </div>
+          <p id="ann-error" class="form-error" hidden></p>
+        </div>
+        <div class="modal-foot">
+          <button type="button" data-close="modal-ann" class="btn btn-ghost">取消</button>
+          <button type="button" id="btn-save-ann" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
