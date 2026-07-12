@@ -32,9 +32,9 @@ const EXCLUDE_DIR_NAMES = new Set([
 
 const EXCLUDE_PATH_PREFIXES = [
   'fork-backend/data',
-  'clash-verge-rev-dev/src-tauri/sidecar',
-  'clash-verge-rev-dev/src-tauri/target',
-  'clash-verge-rev-dev/src-tauri/gen',
+  'Fork-VPN/src-tauri/sidecar',
+  'Fork-VPN/src-tauri/target',
+  'Fork-VPN/src-tauri/gen',
 ]
 
 const EXCLUDE_FILE_NAMES = new Set([
@@ -44,6 +44,8 @@ const EXCLUDE_FILE_NAMES = new Set([
   'fork-vite.log',
   'fork-backend-deploy.tgz',
   'PHASE0_PROGRESS.md', // ops notes with production hostnames / recovery steps
+  'start-fork.ps1', // local convenience only
+  'start-fork.bat',
 ])
 
 const EXCLUDE_FILE_GLOBS = [
@@ -55,14 +57,14 @@ const EXCLUDE_FILE_GLOBS = [
   /^fork-backend\/scripts\/fix-user-purchases/,
   /^fork-backend\/scripts\/run-fix-purchases/,
   // large / redistributable binaries (prebuild fetches)
-  /^clash-verge-rev-dev\/src-tauri\/resources\/.*\.(exe|dat|mmdb)$/i,
-  /^clash-verge-rev-dev\/src-tauri\/sidecar\//,
+  /^Fork-VPN\/src-tauri\/resources\/.*\.(exe|dat|mmdb)$/i,
+  /^Fork-VPN\/src-tauri\/sidecar\//,
   // logs / archives
   /\.log$/i,
   /\.tgz$/i,
   /\.zip$/i,
   // local cargo/node caches that may appear
-  /^clash-verge-rev-dev\/\.cargo\//,
+  /^Fork-VPN\/\.cargo\//,
 ]
 
 // Paths to keep docs but scrub
@@ -208,11 +210,10 @@ ensureDir(STAGE)
 ensureDir(OUT_DIR)
 
 const includeRoots = [
-  'clash-verge-rev-dev',
+  'Fork-VPN',
   'fork-backend',
   'README.md',
-  'start-fork.ps1',
-  'start-fork.bat',
+  // 不打包本机启动脚本（start-fork.ps1 / .bat）——仅本地运维，非发布源码
   'CLASH_REFACTOR_PLAN.md',
   'docs',
   'scripts/pack-source-release.mjs',
@@ -261,7 +262,7 @@ FORK_BIND=127.0.0.1
 FORK_PORT=8787
 FORK_PUBLIC_URL=http://127.0.0.1:8787
 FORK_CORS_ORIGINS=http://127.0.0.1:8787,http://localhost:1420
-FORK_JWT_SECRET=CHANGE_ME_JWT_SECRET_AT_LEAST_32_CHARS
+FORK_JWT_SECRET=dev-only-change-me-to-32chars-min!!
 FORK_JWT_EXPIRES=7d
 # Production: omit FORK_TEST_INSECURE_HTTP; use HTTPS public URL
 # FORK_TEST_INSECURE_HTTP=1
@@ -269,9 +270,9 @@ FORK_JWT_EXPIRES=7d
 # 易支付（付费商品可选）
 # EZPAY_URL=https://pay.example.com
 # EZPAY_PID=
-CHANGE_ME EZPAY_KEY=
+# EZPAY_KEY=
 
-CHANGE_ME 生产首次建管理员时使用，成功后立即删除
+# 生产首次建管理员时使用，成功后立即删除
 # FORK_BOOTSTRAP_TOKEN=
 `
 writeText(path.join(STAGE, 'fork-backend/.env.example'), envExample)
@@ -312,7 +313,7 @@ writeText(path.join(STAGE, '.gitignore'), gitignore)
 const note = `# 脱敏源码包说明
 
 打包日期：${STAMP}
-内容：客户端 \`clash-verge-rev-dev\` + 后端 \`fork-backend\` 源码（已脱敏）
+内容：客户端 \`Fork-VPN\` + 后端 \`fork-backend\` 源码（已脱敏）
 
 ## 已排除
 
@@ -345,7 +346,7 @@ npm run dev
 ### 客户端
 
 \`\`\`bash
-cd clash-verge-rev-dev
+cd Fork-VPN
 corepack enable && pnpm install
 pnpm run prebuild
 # Windows:
@@ -357,7 +358,7 @@ pnpm dev
 
 ## 合规
 
-基于 Clash Verge Rev，许可证见 \`clash-verge-rev-dev/LICENSE\`（GPL-3.0）。
+基于 Clash Verge Rev，许可证见 \`Fork-VPN/LICENSE\`（GPL-3.0）。
 分发二进制时请同时提供对应源码获取方式。
 `
 writeText(path.join(STAGE, 'DESENSITIZE.md'), note)

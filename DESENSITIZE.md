@@ -1,7 +1,7 @@
 # 脱敏源码包说明
 
 打包日期：20260712
-内容：客户端 `clash-verge-rev-dev` + 后端 `fork-backend` 源码（已脱敏）
+内容：客户端 `Fork-VPN` + 后端 `fork-backend` 源码（已脱敏）
 
 ## 已排除
 
@@ -34,7 +34,7 @@ npm run dev
 ### 客户端
 
 ```bash
-cd clash-verge-rev-dev
+cd Fork-VPN
 corepack enable && pnpm install
 pnpm run prebuild
 # Windows:
@@ -46,5 +46,5 @@ pnpm dev
 
 ## 合规
 
-基于 Clash Verge Rev，许可证见 `clash-verge-rev-dev/LICENSE`（GPL-3.0）。
+基于 Clash Verge Rev，许可证见 `Fork-VPN/LICENSE`（GPL-3.0）。
 分发二进制时请同时提供对应源码获取方式。

@@ -3,7 +3,7 @@
 > 基于 [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) 的商业化桌面客户端 · 可选自建后端  
 > 当前版本：**0.1.0**（内测首版，基于上游 Verge Rev 二改）
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](./clash-verge-rev-dev/LICENSE)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](./Fork-VPN/LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2-orange.svg)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
 
@@ -16,7 +16,7 @@ Fork 在保留 Clash Meta / Mihomo 能力的同时，增加 **账号体系、订
 
 ## ✨ 特性
 
-### 客户端（`clash-verge-rev-dev`）
+### 客户端（`Fork-VPN`）
 
 - **商业模式**：注册 / 登录、会话校验、退出登录  
 - **官方线路**：登录后同步服务端合并后的订阅（客户端不暴露源站 URL）  
@@ -40,11 +40,20 @@ Fork 在保留 Clash Meta / Mihomo 能力的同时，增加 **账号体系、订
 
 ```text
 .
-├── clash-verge-rev-dev/   # 桌面客户端（Tauri + React + Rust）
-├── fork-backend/          # 商业 API 与管理后台
-├── start-fork.ps1         # Windows 一键启动（可选）
+├── Fork-VPN/        # 桌面客户端（Tauri + React + Rust）
+├── fork-backend/    # 商业 API 与管理后台
 └── README.md
 ```
+
+---
+
+## 📣 社区与产品
+
+| | 链接 |
+|--|------|
+| **Telegram 频道** | [t.me/forkdl](https://t.me/forkdl) |
+| **正在运营的产品** | [https://forkvpn.i58.xyz](https://forkvpn.i58.xyz) |
+| **GitHub 源码** | [pozhi666/Fork-VPN](https://github.com/pozhi666/Fork-VPN) |
 
 ---
 
@@ -57,7 +66,7 @@ Fork 在保留 Clash Meta / Mihomo 能力的同时，增加 **账号体系、订
 | 商城 | 开通免费 / 付费商品 |
 | 个人中心 | 权益、订单、改密 |
 | 代理 / 规则 | 沿用 Clash Verge Rev 能力 |
-| 管理后台 | 浏览器访问 `/forkvpnadmin/` |
+| 管理后台 | 浏览器访问后端根路径 |
 
 ---
 
@@ -79,13 +88,13 @@ npm run bootstrap-admin -- -u admin -p 'YourStrongPass1'
 npm run dev
 ```
 
-默认：`http://127.0.0.1:8787/forkvpnadmin/`（管理面板）· 落地页 `/`  
+默认：`http://127.0.0.1:8787/`（管理面板）  
 API：`http://127.0.0.1:8787/api/v1`
 
 ### 2. 启动客户端
 
 ```bash
-cd clash-verge-rev-dev
+cd Fork-VPN
 corepack enable
 pnpm install
 pnpm run prebuild    # 拉取 mihomo 等原生依赖
@@ -117,7 +126,7 @@ pnpm dev
 | `COMMERCIAL_MODE` | `src/config/commercial.ts` 与 `src-tauri/src/commercial/mod.rs` 需同时开关 |
 
 与原版隔离的端口、数据目录等见：  
-[`clash-verge-rev-dev/COMMERCIAL.md`](./clash-verge-rev-dev/COMMERCIAL.md)
+[`Fork-VPN/COMMERCIAL.md`](./Fork-VPN/COMMERCIAL.md)
 
 ### 后端（环境变量示例）
 
@@ -176,7 +185,7 @@ node_modules/
 ## 📄 许可证
 
 客户端主体遵循 **GNU General Public License v3.0 only**（与上游一致）。  
-详见 [`clash-verge-rev-dev/LICENSE`](./clash-verge-rev-dev/LICENSE)。
+详见 [`Fork-VPN/LICENSE`](./Fork-VPN/LICENSE)。
 
 `fork-backend` 为配套商业后端示例代码，使用前请自行评估部署安全与合规要求。
 

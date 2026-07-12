@@ -385,6 +385,8 @@ main,
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
   color: var(--muted);
   border-top: 1px solid var(--border);
   font-size: 14px;
@@ -394,6 +396,31 @@ main,
   align-items: center;
   gap: 10px;
   color: var(--text);
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  color: var(--muted);
+}
+.footer-links a:hover {
+  color: var(--text);
+}
+.hero-compact {
+  padding-bottom: 24px;
+}
+.hero-compact .hero-copy {
+  grid-column: 1 / -1;
+}
+.feature code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--primary2);
+}
+.faq a {
+  color: var(--primary2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 900px) {

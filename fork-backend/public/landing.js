@@ -18,11 +18,13 @@
       if (!el) continue
       if (disabled) {
         el.setAttribute('aria-disabled', 'true')
-        el.removeAttribute('href')
-        el.href = '#download'
+        if (el.tagName === 'A') {
+          el.removeAttribute('href')
+          el.href = '#download'
+        }
       } else {
         el.removeAttribute('aria-disabled')
-        el.href = downloadUrl
+        if (el.tagName === 'A') el.href = downloadUrl
       }
     }
   }
