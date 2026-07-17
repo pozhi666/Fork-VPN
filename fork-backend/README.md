@@ -4,6 +4,17 @@ Fork 客户端的商业后端：用户注册登录、订阅代拉和管理面板
 
 > **安全状态：** 当前 HTTP 直连仅允许用于明确设置 `FORK_TEST_INSECURE_HTTP=1` 的短期测试环境。正式部署必须使用 HTTPS 域名、Nginx/Caddy TLS 反代、回环监听和显式 CORS allowlist；HTTP 测试环境不能视为 Phase 0 验收通过。
 
+## 流量额度（重要）
+
+商品字段 `traffic_bytes`（字节，**0 = 不限流量**）在开通权益时写入用户的 `purchases[]`：
+
+- `traffic_limit_bytes` / `traffic_used_bytes`
+- 用尽后：`GET /client/subscription` 返回 **403**，无法再同步官方线路
+- 上报：`POST /client/traffic/report`（`delta_bytes` 或 `upload`+`download`）
+- 管理端：商品表单可填 **流量 GB**；用户列表可 **清零流量**
+
+> 说明：节点在上游机场时，本后端**无法在链路上硬截断**字节流。当前为「额度账本 + 同步拦截」模型；客户端上报可完善自动计量。请勿把付费商品设为 0（不限），以免跑亏。
+
 ## 本地开发
 
 ```bash

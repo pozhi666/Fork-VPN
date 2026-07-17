@@ -44,9 +44,23 @@ export function isPaidProduct(plan) {
   return isSellableProduct(plan) && Number(plan.price_cents || 0) > 0
 }
 
-function activePurchases(user, now = nowTs()) {
+/**
+ * Active product entitlements (must stay in sync with traffic.activePurchases).
+ * Excludes expired / revoked / all-grants-revoked rows — critical for node reclaim.
+ */
+export function activePurchases(user, now = nowTs()) {
   const list = Array.isArray(user?.purchases) ? user.purchases : []
-  return list.filter((p) => !p.expire_at || p.expire_at === 0 || p.expire_at > now)
+  return list.filter((p) => {
+    if (!p) return false
+    if (p.revoked_at) return false
+    const exp = Number(p.expire_at || 0)
+    if (exp > 0 && exp <= now) return false
+    if (Array.isArray(p.grants) && p.grants.length > 0) {
+      const anyOpen = p.grants.some((g) => g && !g.revoked_at)
+      if (!anyOpen) return false
+    }
+    return true
+  })
 }
 
 /**
@@ -96,6 +110,7 @@ export function getCatalog(data, user) {
     const configured = Boolean(
       source && ((source.url || '').trim() || (source.inline_yaml || '').trim()),
     )
+    const trafficBytes = Number(p.traffic_bytes || 0)
     return {
       id: p.id,
       name: p.name,
@@ -103,6 +118,9 @@ export function getCatalog(data, user) {
       price_cents: price,
       price_label: price <= 0 ? '免费' : `¥${(price / 100).toFixed(2)}`,
       days: Number(p.duration_days || p.trial_days || 30),
+      traffic_bytes: trafficBytes,
+      traffic_gb: trafficBytes > 0 ? Math.round((trafficBytes / (1024 ** 3)) * 1000) / 1000 : 0,
+      traffic_label: trafficBytes > 0 ? `${(trafficBytes / (1024 ** 3)).toFixed(0)} GB` : '不限流量',
       source_id: p.source_id,
       source_name: source?.name || null,
       source_access: source ? sourceAccess(source) : null,
@@ -123,14 +141,31 @@ export function summarizeUserAccess(data, user) {
   const now = nowTs()
   const purchases = activePurchases(user, now)
   const sources = getAccessibleSources(data, user)
+
+  // Prefer paid product names first so session/plan never stuck on free trial title
+  const named = purchases
+    .map((p) => {
+      const plan = data.plans.find((x) => x.id === p.product_id)
+      const price = Number(plan?.price_cents || 0)
+      const isPaid =
+        p.traffic_pool === 'paid' ||
+        price > 0 ||
+        (plan && isPaidProduct(plan))
+      return { name: p.name || plan?.name || '', isPaid }
+    })
+    .filter((x) => x.name)
+  named.sort((a, b) => Number(b.isPaid) - Number(a.isPaid))
+
   return {
     purchases: purchases.map((p) => ({
       product_id: p.product_id,
       name: p.name,
       source_id: p.source_id,
       expire_at: p.expire_at,
+      traffic_limit_bytes: Number(p.traffic_limit_bytes) || 0,
+      traffic_used_bytes: Number(p.traffic_used_bytes) || 0,
     })),
-    purchase_names: purchases.map((p) => p.name).filter(Boolean),
+    purchase_names: named.map((x) => x.name),
     public_sources: sources.filter(isPublicSource).map((s) => s.name),
     unlocked_sources: sources.filter(isLockedSource).map((s) => s.name),
     // legacy keys for older admin UI

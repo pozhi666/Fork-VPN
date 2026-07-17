@@ -17,6 +17,8 @@ fork-backend/data/*
 *.log
 releases/
 
-# OS
+# OS / IDE
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/

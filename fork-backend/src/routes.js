@@ -24,16 +24,125 @@ import {
   summarizeUserAccess,
 } from './access.js'
 import {
+  addTrafficToPool,
+  applyTrafficDelta,
+  ensurePurchaseTraffic,
+  ensureTrafficWallets,
+  formatBytes,
+  getUserTraffic,
+  isPaidUser,
+  migrateToDualWallets,
+  productTrafficLimitBytes,
+} from './traffic.js'
+
+import {
   buildPayUrl,
   getEzpayConfig,
   verifyEzpayNotify,
   yuanFromCents,
 } from './ezpay.js'
+import { appendAudit } from './audit.js'
+import { clientIp, hitRateLimit } from './rateLimit.js'
+import { registerDevice, ensureDevices, removeDevice, getMaxDevices } from './devices.js'
+import { ensureUserInviteCode } from './invites.js'
+import { applyInviteRewards, getInviteConfig } from './inviteRewards.js'
+import { maybeResetMonthlyTraffic } from './monthlyTraffic.js'
+import { mountOpsRoutes } from './opsRoutes.js'
+import { checkinStatus, doCheckin } from './checkin.js'
+import { migrateBonusTraffic } from './activityRewards.js'
+import {
+  consumePasswordResetToken,
+  issuePasswordReset,
+} from './accountRecovery.js'
+import { isMailConfigured, sendMail } from './mail.js'
+import {
+  consumeEmailOtp,
+  issueEmailOtp,
+  sendOtpMail,
+} from './emailOtp.js'
+// isPaidProduct already from access via traffic helpers
+import {
+  applyCouponPricing,
+  consumeCoupon,
+  consumeCouponReservation,
+  findValidCoupon,
+  normalizeCouponCode as normCheckoutCoupon,
+  releaseCouponReservation,
+  reserveCoupon,
+} from './checkout.js'
+import {
+  creditBalance,
+  debitBalance,
+  ensureBalance,
+  formatYuan,
+  getBalanceCents,
+  listBalanceLedger,
+  planBalanceApplication,
+  releaseOrderBalanceHold,
+} from './balance.js'
+import {
+  closeTicket,
+  createTicket,
+  getTicket,
+  listAdminTickets,
+  listUserTickets,
+  publicTicket,
+  replyTicket,
+  TICKET_CATEGORY_LABELS,
+} from './tickets.js'
 
 export const api = Router()
+mountOpsRoutes(api)
+
+function assertPaidTrafficQuota(priceCents, trafficBytes, settings) {
+  const price = Number(priceCents || 0)
+  const tb = Number(trafficBytes || 0)
+  const allowUnlimited = String(settings?.allow_paid_unlimited_traffic || '0') === '1'
+  if (price > 0 && tb <= 0 && !allowUnlimited) {
+    throw new Error('付费商品必须设置流量额度（GB > 0）。如需不限请在系统设置开启 allow_paid_unlimited_traffic')
+  }
+}
 
 function ensureOrders(data) {
   if (!Array.isArray(data.orders)) data.orders = []
+}
+
+function expirePendingOrders(data, now = nowTs()) {
+  ensureOrders(data)
+  let expired = 0
+  for (const order of data.orders) {
+    if (order.status !== 'pending' && order.status !== 'pending_payment') continue
+    const expiresAt = Number(order.payment_expires_at || order.coupon_reservation_expires_at || 0)
+    if (!expiresAt || expiresAt > now) continue
+    if (order.coupon_reservation_id) {
+      const coupon = (data.coupons || []).find((c) => c.id === order.coupon_id)
+      if (coupon) releaseCouponReservation(coupon, order.coupon_reservation_id, 'order_expired')
+    }
+    const user = data.users.find((u) => u.id === order.user_id)
+    let balanceReleased = 0
+    if (user) {
+      balanceReleased = releaseOrderBalanceHold(user, order, 'order_expired').released
+    }
+    order.status = 'expired'
+    order.expired_at = now
+    order.updated_at = now
+    appendAudit(data, {
+      actor: 'system',
+      actor_type: 'system',
+      action: 'order.expire',
+      target: order.id,
+      detail: {
+        out_trade_no: order.out_trade_no,
+        balance_released_cents: balanceReleased,
+      },
+    })
+    expired++
+  }
+  return expired
+}
+
+export function expirePendingOrdersNow() {
+  return db.write((data) => expirePendingOrders(data))
 }
 
 function makeOutTradeNo() {
@@ -41,19 +150,79 @@ function makeOutTradeNo() {
   return `F${Date.now()}${tail}`
 }
 
-/** Mark order paid + grant product (idempotent). */
+const BALANCE_TOPUP_PRODUCT = '__balance_topup__'
+/** Suggested packs (UI). Custom amount also allowed within min/max. */
+const BALANCE_TOPUP_PACKS = [
+  { cents: 100, label: '¥1' },
+  { cents: 500, label: '¥5' },
+  { cents: 1000, label: '¥10' },
+  { cents: 3000, label: '¥30' },
+  { cents: 5000, label: '¥50' },
+  { cents: 10000, label: '¥100' },
+]
+const BALANCE_TOPUP_MIN_CENTS = 100 // ¥1
+const BALANCE_TOPUP_MAX_CENTS = 50000 // ¥500
+
+function isBalanceTopupOrder(order) {
+  return (
+    order?.order_kind === 'balance_topup' ||
+    order?.product_id === BALANCE_TOPUP_PRODUCT
+  )
+}
+
+/** Mark a pending order paid + grant product / credit balance (idempotent). */
 function fulfillPaidOrder(data, order, tradeNo = '') {
-  if (!order || order.status === 'paid') return order
+  if (!order) throw new Error('订单不存在')
+  if (order.status === 'paid') return order
+  if (order.status !== 'pending' && order.status !== 'pending_payment') {
+    throw new Error(`终态订单不可履约（${order.status || 'unknown'}）`)
+  }
   const user = data.users.find((u) => u.id === order.user_id)
-  const product = data.plans.find((p) => p.id === order.product_id)
   if (!user) throw new Error('订单用户不存在')
+
+  // —— 余额充值：支付成功后直接入账，不走套餐履约 ——
+  if (isBalanceTopupOrder(order)) {
+    const credit = Math.max(
+      0,
+      Math.floor(Number(order.balance_credit_cents || order.money_cents) || 0),
+    )
+    if (credit <= 0) throw new Error('充值金额无效')
+    const r = creditBalance(user, credit, {
+      type: 'topup',
+      reason: '余额充值',
+      ref_type: 'order',
+      ref_id: order.id,
+      actor: 'ezpay',
+    })
+    order.status = 'paid'
+    order.trade_no = String(tradeNo || order.trade_no || '')
+    order.paid_at = nowTs()
+    order.expire_at = 0
+    order.balance_credited_cents = r.credited
+    order.updated_at = nowTs()
+    return order
+  }
+
+  const product = data.plans.find((p) => p.id === order.product_id)
   if (!product || !isSellableProduct(product)) throw new Error('订单商品无效')
   if (!product.source_id) throw new Error('商品未绑定付费订阅源')
-  const { expire_at } = grantPurchase(user, product)
+
+  if (order.coupon_reservation_id) {
+    const coupon = (data.coupons || []).find((c) => c.id === order.coupon_id)
+    if (!coupon) throw new Error('订单优惠券不存在')
+    consumeCouponReservation(coupon, order.coupon_reservation_id)
+  }
+
+  const grant = grantPurchase(user, product, { order_id: order.id })
   order.status = 'paid'
   order.trade_no = String(tradeNo || order.trade_no || '')
   order.paid_at = nowTs()
-  order.expire_at = expire_at
+  order.expire_at = grant.expire_at
+  // record per-order grant metadata so refund can reclaim this order's exact
+  // allowance without depending on product lookups or purchase-merge state
+  order.traffic_pool = grant.traffic_pool
+  order.granted_traffic_bytes = grant.traffic_limit_bytes
+  order.granted_days = grant.days
   order.updated_at = nowTs()
   return order
 }
@@ -63,51 +232,90 @@ function getSetting(key, fallback = '') {
   return data.settings[key] ?? fallback
 }
 
-function productDurationDays(product) {
+export function productDurationDays(product) {
   return Number(product?.duration_days || product?.trial_days || 30)
 }
 
-function grantPurchase(user, product, { days } = {}) {
+export function grantPurchase(user, product, { days, traffic_bytes, order_id = '' } = {}) {
   if (!Array.isArray(user.purchases)) user.purchases = []
+  ensureTrafficWallets(user)
   const now = nowTs()
   const d = Number(days || productDurationDays(product))
+  const quota =
+    traffic_bytes !== undefined && traffic_bytes !== null
+      ? Math.max(0, Math.floor(Number(traffic_bytes) || 0))
+      : productTrafficLimitBytes(product)
+  // free product (price 0) → free pool; paid → paid pool
+  const pool = Number(product?.price_cents || 0) > 0 ? 'paid' : 'free'
   const existing = user.purchases.find((p) => p.product_id === product.id)
   const base = existing && existing.expire_at > now ? existing.expire_at : now
   const expire_at = base + d * 86400
+  // per-order grant ledger entry (enables order-scoped refunds even when the
+  // same product is renewed/merged into one purchase row)
+  const grantEntry = {
+    order_id: order_id || '',
+    granted_bytes: quota,
+    granted_days: d,
+    traffic_pool: pool,
+    granted_at: now,
+    revoked_at: 0,
+    revoke_reason: '',
+  }
   if (existing) {
+    // Re-purchase after refund reuses the same product_id row — must clear
+    // revoke flags or the user stays "free" forever (activePurchases skips revoked).
     existing.expire_at = expire_at
     existing.source_id = product.source_id
     existing.name = product.name
     existing.updated_at = now
+    existing.traffic_pool = pool
+    existing.revoked_at = 0
+    existing.revoke_reason = ''
+    // wallet is source of truth; keep purchase traffic fields at 0
+    existing.traffic_limit_bytes = 0
+    existing.traffic_used_bytes = 0
+    if (!Array.isArray(existing.grants)) existing.grants = []
+    existing.grants.push(grantEntry)
   } else {
     user.purchases.push({
       product_id: product.id,
       source_id: product.source_id,
       name: product.name,
       expire_at,
+      traffic_pool: pool,
+      traffic_limit_bytes: 0,
+      traffic_used_bytes: 0,
+      grants: [grantEntry],
+      revoked_at: 0,
+      revoke_reason: '',
       created_at: now,
       updated_at: now,
     })
   }
-  // display-only: last product name for session.plan
+  // add product traffic into the correct account wallet
+  if (quota > 0) addTrafficToPool(user, pool, quota)
+
   user.plan_id = product.id
-  // keep account usable at least until entitlement ends
   if (!user.expire_at || user.expire_at < expire_at) user.expire_at = expire_at
   user.updated_at = now
-  return { expire_at, days: d }
+  return { expire_at, days: d, traffic_limit_bytes: quota, traffic_pool: pool, order_id }
 }
 
 function enrichUser(user, data) {
   if (!user) return null
   const access = summarizeUserAccess(data, user)
   const plan = data.plans.find((p) => p.id === user.plan_id)
+  // purchase_names already prefer paid products first
   const label =
     access.purchase_names[0] ||
+    (plan && Number(plan.price_cents || 0) > 0 ? plan.name : null) ||
     plan?.name ||
     (access.paid_sources.length ? 'member' : 'free')
+  const paid = isPaidUser(user, data)
   return {
     ...user,
     plan_name: label,
+    is_paid_user: paid,
     purchase_names: access.purchase_names,
     free_sources: access.free_sources,
     paid_sources: access.paid_sources,
@@ -131,6 +339,7 @@ function userRowToSession(user, token, data) {
     username: user.username,
     email: raw.email || user.email || '',
     plan: user.plan_name || 'trial',
+    is_paid_user: Boolean(user.is_paid_user ?? isPaidUser(raw, dbData)),
     expire_at: user.expire_at,
     status: user.status,
     product_name: getSetting('product_name', 'Fork'),
@@ -142,13 +351,14 @@ function userRowToSession(user, token, data) {
 
 function ensureActive(user) {
   if (!user) return '用户不存在'
+  if (user.status === 'deleted') return '账号已注销'
   if (user.status !== 'active') return '账号已被禁用'
   // Do not block login on user.expire_at — that field is legacy/trial display only.
   // Paid lines are controlled by purchases[]; public sources need only an active account.
   return null
 }
 
-/** Longest active product entitlement end; 0 if none. */
+/** Longest active product entitlement end; 0 if none. Includes account expire_at. */
 function maxPurchaseExpireAt(user, now = nowTs()) {
   const list = Array.isArray(user?.purchases) ? user.purchases : []
   let max = 0
@@ -156,6 +366,8 @@ function maxPurchaseExpireAt(user, now = nowTs()) {
     const exp = Number(p.expire_at || 0)
     if (exp > now && exp > max) max = exp
   }
+  const acc = Number(user?.expire_at || 0)
+  if (acc > now && acc > max) max = acc
   return max
 }
 
@@ -341,18 +553,148 @@ function normalizeCouponCode(code) {
     .replace(/\s+/g, '')
 }
 
+/**
+ * Send email OTP for register / password reset.
+ * Body: { email, purpose: 'register' | 'reset_password' }
+ */
+api.post('/auth/email-code/send', async (req, res) => {
+  const ip = clientIp(req)
+  const rl = hitRateLimit(`emailotp:${ip}`, { limit: 12, windowMs: 3600_000 })
+  if (!rl.ok) return res.status(429).json({ error: rl.error })
+
+  if (!isMailConfigured()) {
+    return res.status(503).json({ error: '邮件服务未配置，无法发送验证码' })
+  }
+
+  const email = String(req.body?.email || '')
+    .trim()
+    .toLowerCase()
+  const purpose = String(req.body?.purpose || '').trim().toLowerCase()
+  if (!isValidEmail(email)) return res.status(400).json({ error: '请填写有效邮箱' })
+  if (
+    purpose !== 'register' &&
+    purpose !== 'reset_password' &&
+    purpose !== 'delete_account'
+  ) {
+    return res.status(400).json({ error: '验证用途无效' })
+  }
+  // delete_account OTP must go through authenticated endpoint (bound email only)
+  if (purpose === 'delete_account') {
+    return res.status(400).json({
+      error: '请登录后使用账号注销验证码接口',
+    })
+  }
+
+  // purpose-specific prechecks (avoid useless emails, still avoid full enumeration on reset)
+  try {
+    if (purpose === 'register') {
+      if (getSetting('allow_register', '1') !== '1') {
+        return res.status(403).json({ error: '暂未开放注册' })
+      }
+      const data = db.read()
+      if (data.users.some((u) => String(u.email || '').toLowerCase() === email)) {
+        return res.status(409).json({ error: '该邮箱已被注册' })
+      }
+    }
+
+    let issued
+    try {
+      issued = db.write((data) => {
+        if (purpose === 'reset_password') {
+          const user = (data.users || []).find(
+            (u) => String(u.email || '').toLowerCase() === email,
+          )
+          // Do not reveal existence: still create OTP only if user exists
+          if (!user || (user.status && user.status !== 'active')) {
+            return { ok: false, silent: true }
+          }
+        }
+        return issueEmailOtp(data, { email, purpose })
+      })
+    } catch (e) {
+      return res.status(400).json({ error: e.message || '无法生成验证码' })
+    }
+
+    if (issued?.silent) {
+      // same response shape as success to reduce enumeration
+      return res.json({
+        ok: true,
+        message: '若该邮箱可用，验证码已发送',
+        expires_in: 600,
+        cooldown: 60,
+      })
+    }
+    if (!issued?.ok) {
+      return res.status(429).json({
+        error: issued?.error || '发送过于频繁',
+        retry_after: issued?.retry_after,
+      })
+    }
+
+    try {
+      await sendOtpMail({ email: issued.email, purpose: issued.purpose, code: issued.code })
+    } catch (e) {
+      console.error('[otp] send failed:', e.message || e)
+      return res.status(502).json({ error: '验证码邮件发送失败，请稍后重试' })
+    }
+
+    db.write((data) => {
+      appendAudit(data, {
+        actor: 'system',
+        actor_type: 'system',
+        action: 'auth.email_otp_sent',
+        detail: { purpose, email, ip },
+        ip,
+      })
+    })
+
+    res.json({
+      ok: true,
+      message: purpose === 'register' ? '验证码已发送到邮箱' : '若该邮箱可用，验证码已发送',
+      expires_in: issued.expires_in,
+      cooldown: 60,
+    })
+  } catch (e) {
+    res.status(400).json({ error: e.message || '发送失败' })
+  }
+})
+
+api.get('/auth/email-status', (_req, res) => {
+  res.json({
+    ok: true,
+    mail_configured: isMailConfigured(),
+    register_requires_code: isMailConfigured(),
+    reset_requires_code: isMailConfigured(),
+  })
+})
+
 api.post('/auth/register', (req, res) => {
   if (getSetting('allow_register', '1') !== '1') {
     return res.status(403).json({ error: '暂未开放注册' })
   }
+  const ip = clientIp(req)
+  const rl = hitRateLimit(`reg:${ip}`, { limit: 8, windowMs: 3600_000 })
+  if (!rl.ok) return res.status(429).json({ error: rl.error })
+
   const username = String(req.body?.username || '').trim()
   const password = String(req.body?.password || '')
   const email = String(req.body?.email || '')
     .trim()
     .toLowerCase()
+  const invite_code = req.body?.invite_code || req.body?.invite || ''
+  const email_code = String(
+    req.body?.email_code || req.body?.code || req.body?.verify_code || '',
+  ).trim()
   if (username.length < 3) return res.status(400).json({ error: '用户名至少 3 个字符' })
   if (password.length < 6) return res.status(400).json({ error: '密码至少 6 个字符' })
   if (!isValidEmail(email)) return res.status(400).json({ error: '请填写有效邮箱' })
+
+  // SMTP configured → email OTP required
+  if (isMailConfigured()) {
+    if (!/^\d{6}$/.test(email_code)) {
+      return res.status(400).json({ error: '请填写邮箱收到的 6 位验证码' })
+    }
+  }
 
   try {
     const session = db.write((data) => {
@@ -362,27 +704,56 @@ api.post('/auth/register', (req, res) => {
       if (data.users.some((u) => String(u.email || '').toLowerCase() === email)) {
         throw new Error('该邮箱已被注册')
       }
-      // Registration does NOT auto-grant product entitlements (purchases stays empty).
-      // Optional settings.register_trial_days / default_plan only for legacy display fields.
-      // Paid lines require purchase / coupon / admin grant; public sources need active status only.
+      if (isMailConfigured()) {
+        const verified = consumeEmailOtp(data, {
+          email,
+          purpose: 'register',
+          code: email_code,
+        })
+        if (!verified.ok) throw new Error(verified.error || '邮箱验证失败')
+      }
+      // same IP many accounts in short window (soft)
+      const hourAgo = nowTs() - 3600
+      const sameIpRecent = data.users.filter(
+        (u) => u.register_ip === ip && (u.created_at || 0) > hourAgo,
+      ).length
+      if (sameIpRecent >= 5) throw new Error('该网络注册过于频繁，请稍后再试')
+
       const now = nowTs()
       const trialDays = Math.max(0, Number(data.settings.register_trial_days ?? 0))
       const user = {
         id: nanoid(),
         username,
         email,
+        email_verified_at: isMailConfigured() ? now : 0,
         password_hash: hashPassword(password),
         plan_id: null,
         purchases: [],
+        devices: [],
         status: 'active',
         expire_at: trialDays > 0 ? now + trialDays * 86400 : 0,
+        register_ip: ip,
         created_at: now,
         updated_at: now,
       }
+      ensureUserInviteCode(user)
+      if (invite_code) {
+        applyInviteRewards(data, user, invite_code)
+      }
       data.users.push(user)
+      appendAudit(data, {
+        actor: username,
+        actor_type: 'user',
+        action: 'auth.register',
+        target: user.id,
+        detail: { invite: Boolean(invite_code), email_verified: isMailConfigured() },
+        ip,
+      })
       const full = enrichUser(user, data)
       const token = signUserToken(full)
-      return userRowToSession(full, token, data)
+      const s = userRowToSession(full, token, data)
+      s.invite_code = user.invite_code
+      return s
     })
     res.json(session)
   } catch (e) {
@@ -393,16 +764,68 @@ api.post('/auth/register', (req, res) => {
 })
 
 api.post('/auth/login', (req, res) => {
+  const ip = clientIp(req)
+  const rl = hitRateLimit(`login:${ip}`, { limit: 30, windowMs: 600_000 })
+  if (!rl.ok) return res.status(429).json({ error: rl.error })
+
   const username = String(req.body?.username || '').trim()
   const password = String(req.body?.password || '')
-  const data = db.read()
-  const user = findUser(data, username, false)
-  if (!user || !checkPassword(password, user.password_hash)) {
-    return res.status(401).json({ error: '用户名或密码错误' })
+  const device_id = String(req.body?.device_id || '').trim()
+  const device_name = String(req.body?.device_name || '').trim()
+  const platform = String(req.body?.platform || '').trim()
+
+  let session
+  try {
+    session = db.write((data) => {
+      const user = data.users.find((u) => u.username === username)
+      if (!user || !checkPassword(password, user.password_hash)) {
+        appendAudit(data, {
+          actor: username || 'unknown',
+          actor_type: 'user',
+          action: 'auth.login_fail',
+          ip,
+        })
+        throw new Error('用户名或密码错误')
+      }
+      const err = ensureActive(user)
+      if (err) throw new Error(err)
+
+      // device binding (optional if client sends device_id)
+      let deviceResult = null
+      if (device_id || device_name) {
+        deviceResult = registerDevice(user, data.settings || {}, {
+          device_id,
+          name: device_name || 'Desktop',
+          platform: platform || 'unknown',
+        })
+        if (!deviceResult.ok) throw new Error(deviceResult.error)
+      }
+
+      user.last_login_at = nowTs()
+      user.last_login_ip = ip
+      user.updated_at = nowTs()
+      ensureUserInviteCode(user)
+      maybeResetMonthlyTraffic(user, data)
+      appendAudit(data, {
+        actor: user.username,
+        actor_type: 'user',
+        action: 'auth.login',
+        target: user.id,
+        detail: { device_id: deviceResult?.device_id || null },
+        ip,
+      })
+      const full = enrichUser(user, data)
+      const s = userRowToSession(full, signUserToken(full), data)
+      s.invite_code = user.invite_code
+      s.device_id = deviceResult?.device_id || device_id || null
+      s.max_devices = getMaxDevices(data.settings)
+      return s
+    })
+  } catch (e) {
+    const status = e.message === '用户名或密码错误' ? 401 : 403
+    return res.status(status).json({ error: e.message })
   }
-  const err = ensureActive(user)
-  if (err) return res.status(403).json({ error: err })
-  res.json(userRowToSession(user, signUserToken(user), data))
+  res.json(session)
 })
 
 api.get('/auth/me', authMiddleware('user'), (req, res) => {
@@ -426,9 +849,29 @@ api.get('/client/profile', authMiddleware('user'), (req, res) => {
   if (err) return res.status(403).json({ error: err })
 
   const now = nowTs()
+  db.write((d) => {
+    const u = d.users.find((x) => x.id === raw.id)
+    if (!u) return
+    maybeResetMonthlyTraffic(u, d, now)
+    migrateToDualWallets(u, d)
+    migrateBonusTraffic(u, d)
+    raw.purchases = u.purchases
+    raw.expire_at = u.expire_at
+    raw.traffic = u.traffic
+  })
+  const traffic = getUserTraffic(raw, data, now)
+  ensureUserInviteCode(raw)
   const purchases = (Array.isArray(raw.purchases) ? raw.purchases : []).map((p) => {
     const exp = Number(p.expire_at || 0)
     const active = !exp || exp === 0 || exp > now
+    const product = data.plans.find((x) => x.id === p.product_id)
+    const pool =
+      p.traffic_pool ||
+      (p.product_id === '__activity_reward__'
+        ? 'activity'
+        : product && Number(product.price_cents || 0) > 0
+          ? 'paid'
+          : 'free')
     return {
       product_id: p.product_id,
       name: p.name || '',
@@ -438,6 +881,12 @@ api.get('/client/profile', authMiddleware('user'), (req, res) => {
       updated_at: p.updated_at || 0,
       active,
       days_left: active && exp > 0 ? Math.max(0, Math.ceil((exp - now) / 86400)) : null,
+      traffic_pool: pool,
+      // per-purchase traffic moved to account wallets
+      traffic_limit_bytes: 0,
+      traffic_used_bytes: 0,
+      traffic_unlimited: false,
+      traffic_label: pool === 'paid' ? '计入付费流量池' : pool === 'free' ? '计入免费流量池' : '活动',
     }
   })
   // active first, then by expire
@@ -465,7 +914,216 @@ api.get('/client/profile', authMiddleware('user'), (req, res) => {
     purchases,
     free_sources: user.free_sources || [],
     paid_sources: user.paid_sources || [],
+    invite_code: raw.invite_code || '',
+    invited_by: raw.invited_by || null,
+    devices: ensureDevices(raw).map((d) => ({
+      id: d.id,
+      name: d.name,
+      platform: d.platform,
+      last_seen_at: d.last_seen_at,
+      created_at: d.created_at,
+    })),
+    max_devices: getMaxDevices(db.read().settings),
+    support_tg: getSetting('support_tg', 'https://t.me/forkdl'),
+    is_paid_user: traffic.is_paid_user,
+    balance_cents: getBalanceCents(raw),
+    balance_yuan: formatYuan(getBalanceCents(raw)),
+    traffic: {
+      // dual wallets
+      free: traffic.free,
+      paid: traffic.paid,
+      is_paid_user: traffic.is_paid_user,
+      // legacy single (dashboard fallback)
+      unlimited: traffic.unlimited,
+      limit_bytes: traffic.limit_bytes,
+      used_bytes: traffic.used_bytes,
+      remaining_bytes: traffic.remaining_bytes,
+      exhausted: traffic.exhausted,
+      label: traffic.label,
+    },
   })
+})
+
+/** Client balance ledger (store credit history) */
+api.get('/client/balance/ledger', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.auth.sub)
+  if (!user) return res.status(401).json({ error: '请先登录' })
+  const limit = Number(req.query?.limit || 50)
+  res.json({
+    balance_cents: getBalanceCents(user),
+    balance_yuan: formatYuan(getBalanceCents(user)),
+    items: listBalanceLedger(user, limit),
+  })
+})
+
+/** Fixed top-up packs (cents) */
+api.get('/client/balance/packs', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.auth.sub)
+  if (!user) return res.status(401).json({ error: '请先登录' })
+  res.json({
+    balance_cents: getBalanceCents(user),
+    balance_yuan: formatYuan(getBalanceCents(user)),
+    packs: BALANCE_TOPUP_PACKS.map((p) => ({
+      amount_cents: p.cents,
+      label: p.label,
+      yuan: formatYuan(p.cents),
+    })),
+    min_cents: BALANCE_TOPUP_MIN_CENTS,
+    max_cents: BALANCE_TOPUP_MAX_CENTS,
+    allow_custom: true,
+    ezpay_enabled: getEzpayConfig().enabled,
+  })
+})
+
+/**
+ * Create a balance top-up payment order.
+ * Body: { amount_cents, pay_type? }
+ * amount_cents: any integer in [min_cents, max_cents] (custom allowed)
+ * On 易支付 notify → credit balance (not product grant).
+ */
+api.post('/client/balance/topup', authMiddleware('user'), (req, res) => {
+  // accept yuan (amount) or cents (amount_cents)
+  let amountCents = Math.floor(Number(req.body?.amount_cents) || 0)
+  if (!amountCents && req.body?.amount != null) {
+    amountCents = Math.round(Number(req.body.amount) * 100)
+  }
+  if (
+    !Number.isFinite(amountCents) ||
+    amountCents < BALANCE_TOPUP_MIN_CENTS ||
+    amountCents > BALANCE_TOPUP_MAX_CENTS
+  ) {
+    return res.status(400).json({
+      error: `充值金额需在 ¥${formatYuan(BALANCE_TOPUP_MIN_CENTS)} ~ ¥${formatYuan(BALANCE_TOPUP_MAX_CENTS)} 之间`,
+    })
+  }
+  const payTypeRaw = String(req.body?.pay_type || 'alipay').toLowerCase()
+  const payType = ['alipay', 'wxpay', 'qqpay'].includes(payTypeRaw)
+    ? payTypeRaw
+    : 'alipay'
+  try {
+    const result = db.write((data) => {
+      ensureOrders(data)
+      expirePendingOrders(data)
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      if (user.status !== 'active') throw new Error('账号已被禁用')
+      const cfg = getEzpayConfig()
+      if (!cfg.enabled) throw new Error('在线支付未配置，请联系管理员')
+
+      const now = nowTs()
+      const orderId = nanoid()
+      const outTradeNo = makeOutTradeNo()
+      const money = yuanFromCents(amountCents)
+      const pendingExpiresAt = now + 30 * 60
+      let payUrl
+      try {
+        payUrl = buildPayUrl({
+          outTradeNo,
+          name: `余额充值 ¥${formatYuan(amountCents)}`,
+          moneyYuan: money,
+          type: payType,
+          returnPath: '/pay-return.html',
+        })
+      } catch (e) {
+        throw new Error(e.message || '生成支付链接失败')
+      }
+      const order = {
+        id: orderId,
+        out_trade_no: outTradeNo,
+        user_id: user.id,
+        product_id: BALANCE_TOPUP_PRODUCT,
+        product_name: `余额充值 ¥${formatYuan(amountCents)}`,
+        order_kind: 'balance_topup',
+        money_cents: amountCents,
+        balance_credit_cents: amountCents,
+        gateway_cents: amountCents,
+        balance_applied_cents: 0,
+        original_cents: amountCents,
+        discount_cents: 0,
+        money,
+        pay_type: payType,
+        status: 'pending',
+        payment_expires_at: pendingExpiresAt,
+        trade_no: '',
+        pay_url: payUrl,
+        expire_at: 0,
+        created_at: now,
+        paid_at: 0,
+        updated_at: now,
+        balance_released: true,
+      }
+      data.orders.push(order)
+      appendAudit(data, {
+        actor: user.username,
+        actor_type: 'user',
+        action: 'balance.topup_create',
+        target: orderId,
+        detail: { amount_cents: amountCents, pay_type: payType },
+        ip: clientIp(req),
+      })
+      return {
+        need_pay: true,
+        status: 'pending',
+        order_id: orderId,
+        out_trade_no: outTradeNo,
+        pay_url: payUrl,
+        product_id: BALANCE_TOPUP_PRODUCT,
+        name: `余额充值 ¥${formatYuan(amountCents)}`,
+        amount_cents: amountCents,
+        price_cents: amountCents,
+        expire_at: 0,
+        message: `请支付 ¥${formatYuan(amountCents)} 完成充值`,
+      }
+    })
+    res.json(result)
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+/** Client: list / remove own devices */
+api.get('/client/devices', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.auth.sub)
+  if (!user) return res.status(401).json({ error: '请先登录' })
+  res.json({
+    items: ensureDevices(user),
+    max: getMaxDevices(data.settings),
+  })
+})
+
+api.delete('/client/devices/:deviceId', authMiddleware('user'), (req, res) => {
+  try {
+    db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      removeDevice(user, req.params.deviceId)
+    })
+    res.json({ ok: true })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+api.post('/client/devices/register', authMiddleware('user'), (req, res) => {
+  try {
+    let out
+    db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      out = registerDevice(user, data.settings || {}, {
+        device_id: req.body?.device_id,
+        name: req.body?.name || req.body?.device_name,
+        platform: req.body?.platform,
+      })
+      if (!out.ok) throw new Error(out.error)
+    })
+    res.json(out)
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
 })
 
 /**
@@ -473,6 +1131,9 @@ api.get('/client/profile', authMiddleware('user'), (req, res) => {
  * Body: { code }
  */
 api.post('/client/redeem', authMiddleware('user'), (req, res) => {
+  const ip = clientIp(req)
+  const rl = hitRateLimit(`redeem:${ip}:${req.auth.sub}`, { limit: 15, windowMs: 600_000 })
+  if (!rl.ok) return res.status(429).json({ error: rl.error })
   const code = normalizeCouponCode(req.body?.code)
   if (!code || code.length < 4) {
     return res.status(400).json({ error: '请输入有效兑换码' })
@@ -541,21 +1202,31 @@ api.get('/client/orders', authMiddleware('user'), (req, res) => {
     .filter((o) => o.user_id === req.auth.sub)
     .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))
     .slice(0, 100)
-    .map((o) => ({
-      order_id: o.id,
-      out_trade_no: o.out_trade_no,
-      status: o.status,
-      product_id: o.product_id,
-      name: o.product_name,
-      money: o.money,
-      money_cents: o.money_cents,
-      pay_type: o.pay_type || '',
-      trade_no: o.trade_no || '',
-      expire_at: o.expire_at || 0,
-      created_at: o.created_at || 0,
-      paid_at: o.paid_at || 0,
-      pay_url: o.status === 'pending' ? o.pay_url || '' : '',
-    }))
+    .map((o) => {
+      const isTopup =
+        o.order_kind === 'balance_topup' || o.product_id === BALANCE_TOPUP_PRODUCT
+      return {
+        order_id: o.id,
+        out_trade_no: o.out_trade_no,
+        status: o.status,
+        product_id: o.product_id,
+        name: o.product_name,
+        order_kind: o.order_kind || (isTopup ? 'balance_topup' : 'product'),
+        money: o.money || formatYuan(o.money_cents || 0),
+        money_cents: o.money_cents,
+        balance_applied_cents: o.balance_applied_cents || 0,
+        gateway_cents: o.gateway_cents != null ? o.gateway_cents : o.money_cents,
+        balance_refund_cents: o.balance_refund_cents || 0,
+        refund_destination: o.refund_destination || '',
+        pay_type: o.pay_type || '',
+        trade_no: o.trade_no || '',
+        expire_at: o.expire_at || 0,
+        created_at: o.created_at || 0,
+        paid_at: o.paid_at || 0,
+        refunded_at: o.refunded_at || 0,
+        pay_url: o.status === 'pending' ? o.pay_url || '' : '',
+      }
+    })
   res.json({ items })
 })
 
@@ -651,10 +1322,67 @@ api.get('/client/catalog', authMiddleware('user'), (req, res) => {
   })
 })
 
+/** Product detail for checkout page */
+api.get('/client/catalog/:id', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.auth.sub)
+  if (!user) return res.status(401).json({ error: '请先登录' })
+  const catalog = getCatalog(data, user)
+  const all = [...catalog.free, ...catalog.paid]
+  const item = all.find((p) => p.id === req.params.id)
+  if (!item) return res.status(404).json({ error: '商品不存在或已下架' })
+  res.json({ item, access_key: accessFingerprint(data, user) })
+})
+
+/** Preview coupon + optional balance application on a product (no consume) */
+api.post('/client/checkout/preview', authMiddleware('user'), (req, res) => {
+  const productId = String(req.body?.product_id || '')
+  const code = req.body?.coupon_code || req.body?.code || ''
+  const useBalance = req.body?.use_balance !== false && req.body?.use_balance !== 0
+  try {
+    const data = db.read()
+    const user = data.users.find((u) => u.id === req.auth.sub)
+    if (!user) throw new Error('用户不存在')
+    ensureBalance(user)
+    const product = data.plans.find((p) => p.id === productId)
+    if (!isSellableProduct(product)) throw new Error('商品不存在或已下架')
+    const base = Math.max(0, Number(product.price_cents || 0))
+    let pricing = {
+      original_cents: base,
+      final_cents: base,
+      discount_cents: 0,
+      free: base <= 0,
+      label: base <= 0 ? '免费' : '原价',
+    }
+    if (code) {
+      const found = findValidCoupon(data, code, user.id, productId)
+      if (!found.ok) return res.status(400).json({ error: found.error })
+      pricing = applyCouponPricing(product, found.coupon)
+    }
+    const bal = planBalanceApplication(user, pricing.final_cents, useBalance)
+    res.json({
+      ok: true,
+      ...pricing,
+      coupon_code: code ? normCheckoutCoupon(code) : undefined,
+      balance_cents: bal.balance_cents,
+      balance_yuan: formatYuan(bal.balance_cents),
+      balance_applied_cents: bal.balance_applied_cents,
+      gateway_cents: bal.gateway_cents,
+      fully_covered_by_balance: bal.fully_covered && pricing.final_cents > 0,
+      use_balance: useBalance,
+    })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
 /**
- * Self-serve purchase:
- * - price_cents <= 0 → instant grant
- * - paid → create 易支付 order, return pay_url (grant on async notify)
+ * Self-serve purchase (from product detail):
+ * Body: { product_id, pay_type?, coupon_code?, use_balance? }
+ * - free / coupon grant / discounted-to-0 → instant grant
+ * - balance fully covers → debit balance + instant grant
+ * - partial balance → hold balance + 易支付 remainder
+ * - no balance → 易支付 full final price
  */
 api.post('/client/purchase', authMiddleware('user'), (req, res) => {
   const productId = String(req.body?.product_id || '')
@@ -664,22 +1392,42 @@ api.post('/client/purchase', authMiddleware('user'), (req, res) => {
   const payType = ['alipay', 'wxpay', 'qqpay'].includes(payTypeRaw)
     ? payTypeRaw
     : 'alipay'
+  const couponCode = req.body?.coupon_code || req.body?.code || ''
+  const useBalance = req.body?.use_balance !== false && req.body?.use_balance !== 0
 
   try {
     const result = db.write((data) => {
       ensureOrders(data)
+      expirePendingOrders(data)
       const user = data.users.find((u) => u.id === req.auth.sub)
       if (!user) throw new Error('用户不存在')
       if (user.status !== 'active') throw new Error('账号已被禁用')
+      ensureBalance(user)
 
       const product = data.plans.find((p) => p.id === productId)
       if (!isSellableProduct(product)) throw new Error('商品不存在或已下架')
       if (!product.source_id) throw new Error('商品未绑定付费订阅源')
 
-      const priceCents = Math.max(0, Number(product.price_cents || 0))
+      let priceCents = Math.max(0, Number(product.price_cents || 0))
+      let pricing = {
+        original_cents: priceCents,
+        final_cents: priceCents,
+        discount_cents: 0,
+        free: priceCents <= 0,
+        label: priceCents <= 0 ? '免费' : '原价',
+      }
+      let coupon = null
+      if (couponCode) {
+        const found = findValidCoupon(data, couponCode, user.id, productId)
+        if (!found.ok) throw new Error(found.error)
+        coupon = found.coupon
+        pricing = applyCouponPricing(product, coupon)
+        priceCents = pricing.final_cents
+      }
 
-      // Free products: open immediately
-      if (priceCents <= 0) {
+      // Free / fully discounted / grant coupon
+      if (priceCents <= 0 || pricing.free) {
+        if (coupon) consumeCoupon(coupon, user.id, productId)
         const { expire_at } = grantPurchase(user, product)
         return {
           need_pay: false,
@@ -688,7 +1436,81 @@ api.post('/client/purchase', authMiddleware('user'), (req, res) => {
           name: product.name,
           expire_at,
           price_cents: 0,
-          message: `已开通 ${product.name}`,
+          original_cents: pricing.original_cents,
+          discount_cents: pricing.discount_cents,
+          balance_applied_cents: 0,
+          gateway_cents: 0,
+          balance_cents: getBalanceCents(user),
+          coupon_applied: Boolean(coupon),
+          message: coupon
+            ? `已使用优惠开通 ${product.name}`
+            : `已开通 ${product.name}`,
+          access_key: accessFingerprint(data, user),
+        }
+      }
+
+      const balPlan = planBalanceApplication(user, priceCents, useBalance)
+      const balanceApplied = balPlan.balance_applied_cents
+      const gatewayCents = balPlan.gateway_cents
+
+      // Fully covered by store balance
+      if (gatewayCents <= 0 && balanceApplied > 0) {
+        if (coupon) consumeCoupon(coupon, user.id, productId)
+        const now = nowTs()
+        const orderId = nanoid()
+        const outTradeNo = makeOutTradeNo()
+        debitBalance(user, balanceApplied, {
+          type: 'purchase',
+          reason: `购买 ${product.name}`,
+          ref_type: 'order',
+          ref_id: orderId,
+          actor: user.username,
+        })
+        const grant = grantPurchase(user, product, { order_id: orderId })
+        data.orders.push({
+          id: orderId,
+          out_trade_no: outTradeNo,
+          user_id: user.id,
+          product_id: product.id,
+          product_name: product.name,
+          money_cents: priceCents,
+          original_cents: pricing.original_cents,
+          discount_cents: pricing.discount_cents,
+          balance_applied_cents: balanceApplied,
+          gateway_cents: 0,
+          coupon_code: coupon ? normCheckoutCoupon(couponCode) : '',
+          coupon_id: coupon?.id || '',
+          money: yuanFromCents(priceCents),
+          pay_type: 'balance',
+          status: 'paid',
+          trade_no: '',
+          pay_url: '',
+          expire_at: grant.expire_at,
+          traffic_pool: grant.traffic_pool,
+          granted_traffic_bytes: grant.traffic_limit_bytes,
+          granted_days: grant.days,
+          created_at: now,
+          paid_at: now,
+          updated_at: now,
+          balance_released: true,
+        })
+
+        return {
+          need_pay: false,
+          status: 'paid',
+          order_id: orderId,
+          out_trade_no: outTradeNo,
+          product_id: productId,
+          name: product.name,
+          expire_at: grant.expire_at,
+          price_cents: priceCents,
+          original_cents: pricing.original_cents,
+          discount_cents: pricing.discount_cents,
+          balance_applied_cents: balanceApplied,
+          gateway_cents: 0,
+          balance_cents: getBalanceCents(user),
+          coupon_applied: Boolean(coupon),
+          message: `已使用余额 ¥${formatYuan(balanceApplied)} 开通 ${product.name}`,
           access_key: accessFingerprint(data, user),
         }
       }
@@ -697,26 +1519,58 @@ api.post('/client/purchase', authMiddleware('user'), (req, res) => {
       if (!cfg.enabled) {
         throw new Error('在线支付未配置，请联系管理员')
       }
+      if (gatewayCents <= 0) {
+        throw new Error('应付金额异常')
+      }
 
       const now = nowTs()
       const outTradeNo = makeOutTradeNo()
-      const money = yuanFromCents(priceCents)
+      const money = yuanFromCents(gatewayCents)
+      const orderId = nanoid()
+      const couponReservationId = coupon ? nanoid(18) : ''
+      const pendingExpiresAt = now + 30 * 60
+      if (coupon) {
+        reserveCoupon(coupon, user.id, productId, couponReservationId, pendingExpiresAt)
+      }
+
+      // Hold balance immediately; released on cancel/expire, or kept on paid
+      // (refund credits full money_cents including this hold).
+      if (balanceApplied > 0) {
+        debitBalance(user, balanceApplied, {
+          type: 'purchase_hold',
+          reason: `下单预扣 ${product.name}`,
+          ref_type: 'order',
+          ref_id: orderId,
+          actor: user.username,
+        })
+      }
+
       const order = {
-        id: nanoid(),
+        id: orderId,
         out_trade_no: outTradeNo,
         user_id: user.id,
         product_id: product.id,
         product_name: product.name,
         money_cents: priceCents,
+        original_cents: pricing.original_cents,
+        discount_cents: pricing.discount_cents,
+        balance_applied_cents: balanceApplied,
+        gateway_cents: gatewayCents,
+        coupon_code: coupon ? normCheckoutCoupon(couponCode) : '',
+        coupon_id: coupon?.id || '',
+        coupon_reservation_id: couponReservationId,
+        coupon_reservation_expires_at: coupon ? pendingExpiresAt : 0,
         money,
         pay_type: payType,
         status: 'pending',
+        payment_expires_at: pendingExpiresAt,
         trade_no: '',
         pay_url: '',
         expire_at: 0,
         created_at: now,
         paid_at: 0,
         updated_at: now,
+        balance_released: false,
       }
 
       let payUrl
@@ -729,6 +1583,16 @@ api.post('/client/purchase', authMiddleware('user'), (req, res) => {
           returnPath: '/pay-return.html',
         })
       } catch (e) {
+        // roll back balance hold if pay URL fails
+        if (balanceApplied > 0) {
+          creditBalance(user, balanceApplied, {
+            type: 'order_release',
+            reason: 'pay_url_failed',
+            ref_type: 'order',
+            ref_id: orderId,
+            actor: 'system',
+          })
+        }
         throw new Error(e.message || '生成支付链接失败')
       }
       order.pay_url = payUrl
@@ -744,13 +1608,85 @@ api.post('/client/purchase', authMiddleware('user'), (req, res) => {
         name: product.name,
         expire_at: 0,
         price_cents: priceCents,
-        message: '请在打开的页面完成支付',
+        original_cents: pricing.original_cents,
+        discount_cents: pricing.discount_cents,
+        balance_applied_cents: balanceApplied,
+        gateway_cents: gatewayCents,
+        balance_cents: getBalanceCents(user),
+        coupon_applied: Boolean(coupon),
+        message:
+          balanceApplied > 0
+            ? `已预扣余额 ¥${formatYuan(balanceApplied)}，请再支付 ¥${formatYuan(gatewayCents)}`
+            : '请在打开的页面完成支付',
       }
     })
     res.json(result)
   } catch (e) {
     res.status(400).json({ error: e.message })
   }
+})
+
+/** Daily check-in */
+api.get('/client/checkin', authMiddleware('user'), (req, res) => {
+  try {
+    // Persist entitlement heal so is_paid_user matches refund state
+    const status = db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('请先登录')
+      return checkinStatus(user, data)
+    })
+    res.json(status)
+  } catch (e) {
+    res.status(e.message === '请先登录' ? 401 : 400).json({ error: e.message })
+  }
+})
+
+api.post('/client/checkin', authMiddleware('user'), (req, res) => {
+  try {
+    const result = db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      if (user.status !== 'active') throw new Error('账号已被禁用')
+      const r = doCheckin(user, data)
+      appendAudit(data, {
+        actor: user.username,
+        actor_type: 'user',
+        action: 'checkin',
+        target: user.id,
+        detail: r,
+        ip: clientIp(req),
+      })
+      return r
+    })
+    res.json({ ok: true, ...result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+/** Invite activity public info for client */
+api.get('/client/invite/info', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.auth.sub)
+  if (!user) return res.status(401).json({ error: '请先登录' })
+  ensureUserInviteCode(user)
+  // persist code if newly generated
+  db.write((d) => {
+    const u = d.users.find((x) => x.id === user.id)
+    if (u) ensureUserInviteCode(u)
+  })
+  const cfg = getInviteConfig(data.settings || {})
+  const invited = (data.invite_redemptions || []).filter((r) => r.inviter_id === user.id)
+  res.json({
+    enabled: cfg.enabled,
+    invite_code: user.invite_code,
+    reward_days: cfg.reward_days,
+    reward_traffic_gb: cfg.reward_traffic_gb,
+    invitee_days: cfg.invitee_days,
+    invitee_traffic_gb: cfg.invitee_traffic_gb,
+    invited_count: invited.length,
+    reward_count: user.invite_reward_count || 0,
+  })
 })
 
 /** Client polls order after browser payment */
@@ -765,24 +1701,29 @@ api.get('/client/orders/:id', authMiddleware('user'), (req, res) => {
   if (!order) return res.status(404).json({ error: '订单不存在' })
 
   const user = data.users.find((u) => u.id === order.user_id)
+  const isTopup = isBalanceTopupOrder(order)
   res.json({
     order_id: order.id,
     out_trade_no: order.out_trade_no,
     status: order.status,
     product_id: order.product_id,
     name: order.product_name,
+    order_kind: order.order_kind || (isTopup ? 'balance_topup' : 'product'),
     expire_at: order.expire_at || 0,
     price_cents: order.money_cents || 0,
     paid_at: order.paid_at || 0,
     pay_url: order.status === 'pending' ? order.pay_url || '' : '',
+    balance_cents: user ? getBalanceCents(user) : undefined,
     message:
       order.status === 'paid'
-        ? `已开通 ${order.product_name}`
+        ? isTopup
+          ? `充值成功，余额 ¥${formatYuan(getBalanceCents(user))}`
+          : `已开通 ${order.product_name}`
         : order.status === 'pending'
           ? '等待支付'
           : order.status,
     access_key:
-      order.status === 'paid' && user
+      order.status === 'paid' && user && !isTopup
         ? accessFingerprint(data, user)
         : undefined,
   })
@@ -827,6 +1768,17 @@ function handleEzpayNotify(req, res) {
       const order = data.orders.find((o) => o.out_trade_no === outTradeNo)
       if (!order) throw new Error(`order not found: ${outTradeNo}`)
       if (order.status === 'paid') return
+      if (order.status !== 'pending' && order.status !== 'pending_payment') {
+        appendAudit(data, {
+          actor: 'ezpay',
+          actor_type: 'system',
+          action: 'payment.notify_ignored',
+          target: order.id,
+          detail: { order_status: order.status, out_trade_no: outTradeNo },
+          ip: clientIp(req),
+        })
+        return
+      }
 
       const expected = Number(order.money).toFixed(2)
       const got = Number(q.money).toFixed(2)
@@ -855,52 +1807,336 @@ api.get('/admin/orders', authMiddleware('admin'), (_req, res) => {
   ensureOrders(data)
   const items = [...data.orders]
     .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))
-    .slice(0, 200)
+    .slice(0, 300)
     .map((o) => {
       const user = data.users.find((u) => u.id === o.user_id)
+      const isTopup =
+        o.order_kind === 'balance_topup' || o.product_id === BALANCE_TOPUP_PRODUCT
       return {
         id: o.id,
         out_trade_no: o.out_trade_no,
         username: user?.username || o.user_id,
         product_name: o.product_name,
-        money: o.money,
+        order_kind: o.order_kind || (isTopup ? 'balance_topup' : 'product'),
+        money: o.money || formatYuan(o.money_cents || 0),
         money_cents: o.money_cents,
+        balance_applied_cents: o.balance_applied_cents || 0,
+        gateway_cents: o.gateway_cents,
         status: o.status,
         pay_type: o.pay_type,
         trade_no: o.trade_no || '',
         created_at: o.created_at,
         paid_at: o.paid_at || 0,
+        refunded_at: o.refunded_at || 0,
+        refund_destination: o.refund_destination || '',
       }
     })
   res.json({ items, ezpay_enabled: getEzpayConfig().enabled })
 })
 
+// ---------- support tickets ----------
+api.get('/client/tickets', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  res.json({
+    items: listUserTickets(data, req.auth.sub, 50),
+    categories: TICKET_CATEGORY_LABELS,
+  })
+})
+
+api.post('/client/tickets', authMiddleware('user'), (req, res) => {
+  try {
+    const result = db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      if (user.status !== 'active') throw new Error('账号已被禁用')
+      const ticket = createTicket(data, user, {
+        subject: req.body?.subject,
+        body: req.body?.body || req.body?.content,
+        category: req.body?.category,
+      })
+      appendAudit(data, {
+        actor: user.username,
+        actor_type: 'user',
+        action: 'ticket.create',
+        target: ticket.id,
+        detail: { subject: ticket.subject, category: ticket.category },
+        ip: clientIp(req),
+      })
+      return publicTicket(ticket)
+    })
+    res.json({ ok: true, ticket: result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+api.get('/client/tickets/:id', authMiddleware('user'), (req, res) => {
+  const data = db.read()
+  const t = getTicket(data, req.params.id)
+  if (!t || t.user_id !== req.auth.sub) {
+    return res.status(404).json({ error: '工单不存在' })
+  }
+  res.json({ ticket: publicTicket(t) })
+})
+
+api.post('/client/tickets/:id/reply', authMiddleware('user'), (req, res) => {
+  try {
+    const result = db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      const t = getTicket(data, req.params.id)
+      if (!t || t.user_id !== user.id) throw new Error('工单不存在')
+      replyTicket(data, t, {
+        role: 'user',
+        author: user.username,
+        body: req.body?.body || req.body?.content,
+      })
+      return publicTicket(t)
+    })
+    res.json({ ok: true, ticket: result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+api.post('/client/tickets/:id/close', authMiddleware('user'), (req, res) => {
+  try {
+    const result = db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      const t = getTicket(data, req.params.id)
+      if (!t || t.user_id !== user.id) throw new Error('工单不存在')
+      closeTicket(data, t, user.username)
+      return publicTicket(t)
+    })
+    res.json({ ok: true, ticket: result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+api.get('/admin/tickets', authMiddleware('admin'), (req, res) => {
+  const data = db.read()
+  const status = String(req.query?.status || '')
+  res.json({
+    items: listAdminTickets(data, { status, limit: Number(req.query?.limit || 100) }),
+    categories: TICKET_CATEGORY_LABELS,
+  })
+})
+
+api.get('/admin/tickets/:id', authMiddleware('admin'), (req, res) => {
+  const data = db.read()
+  const t = getTicket(data, req.params.id)
+  if (!t) return res.status(404).json({ error: '工单不存在' })
+  res.json({
+    ticket: {
+      ...publicTicket(t),
+      user_id: t.user_id,
+      username: t.username,
+    },
+  })
+})
+
+api.post('/admin/tickets/:id/reply', authMiddleware('admin'), (req, res) => {
+  try {
+    const actor = req.auth?.username || req.auth?.sub || 'admin'
+    const result = db.write((data) => {
+      const t = getTicket(data, req.params.id)
+      if (!t) throw new Error('工单不存在')
+      replyTicket(data, t, {
+        role: 'admin',
+        author: actor,
+        body: req.body?.body || req.body?.content,
+      })
+      appendAudit(data, {
+        actor,
+        actor_type: 'admin',
+        action: 'ticket.reply',
+        target: t.id,
+        detail: {},
+        ip: clientIp(req),
+      })
+      return {
+        ...publicTicket(t),
+        user_id: t.user_id,
+        username: t.username,
+      }
+    })
+    res.json({ ok: true, ticket: result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+api.post('/admin/tickets/:id/close', authMiddleware('admin'), (req, res) => {
+  try {
+    const actor = req.auth?.username || req.auth?.sub || 'admin'
+    const result = db.write((data) => {
+      const t = getTicket(data, req.params.id)
+      if (!t) throw new Error('工单不存在')
+      closeTicket(data, t, actor)
+      appendAudit(data, {
+        actor,
+        actor_type: 'admin',
+        action: 'ticket.close',
+        target: t.id,
+        detail: {},
+        ip: clientIp(req),
+      })
+      return {
+        ...publicTicket(t),
+        user_id: t.user_id,
+        username: t.username,
+      }
+    })
+    res.json({ ok: true, ticket: result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+/**
+ * Client reports traffic usage (bytes since last report or absolute totals).
+ * Body: { delta_bytes, pool? } or { upload, download, pool? }
+ * pool: 'free' | 'paid' | 'auto' (default auto)
+ * Enforcement is soft without a middle proxy; over-quota blocks /client/subscription.
+ */
+api.post('/client/traffic/report', authMiddleware('user'), (req, res) => {
+  try {
+    let delta = Number(req.body?.delta_bytes)
+    if (!Number.isFinite(delta) || delta < 0) {
+      const up = Math.max(0, Math.floor(Number(req.body?.upload) || 0))
+      const down = Math.max(0, Math.floor(Number(req.body?.download) || 0))
+      delta = up + down
+    }
+    delta = Math.floor(delta)
+    if (delta > 50 * 1024 * 1024 * 1024) {
+      return res.status(400).json({ error: '单次上报流量过大' })
+    }
+    const rawPool = String(req.body?.pool || 'auto').toLowerCase()
+    const pool =
+      rawPool === 'paid' || rawPool === 'free' || rawPool === 'auto' ? rawPool : 'auto'
+
+    let traffic
+    let appliedPool = pool === 'auto' ? 'free' : pool
+    db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      migrateToDualWallets(user, data)
+      if (delta > 0) {
+        const result = applyTrafficDelta(user, data, delta, pool)
+        appliedPool = result?.pool || appliedPool
+      }
+      traffic = getUserTraffic(user, data)
+    })
+
+    res.json({
+      ok: true,
+      applied: delta,
+      pool: appliedPool,
+      traffic: {
+        free: traffic.free,
+        paid: traffic.paid,
+        is_paid_user: traffic.is_paid_user,
+        unlimited: traffic.unlimited,
+        limit_bytes: traffic.limit_bytes,
+        used_bytes: traffic.used_bytes,
+        remaining_bytes: traffic.remaining_bytes,
+        exhausted: traffic.exhausted,
+        label: traffic.label,
+      },
+    })
+  } catch (e) {
+    res.status(e.message === '用户不存在' ? 404 : 400).json({ error: e.message })
+  }
+})
+
 /** Merge free + purchased paid sources for the client proxy list */
 api.get('/client/subscription', authMiddleware('user'), async (req, res) => {
   try {
+    const ip = clientIp(req)
+    const rl = hitRateLimit(`sub:${req.auth.sub}`, { limit: 60, windowMs: 600_000 })
+    if (!rl.ok) return res.status(429).json({ error: rl.error })
+
     const data = db.read()
     const rawUser = data.users.find((u) => u.id === req.auth.sub)
     if (!rawUser) return res.status(401).json({ error: '请先登录' })
     const err = ensureActive(rawUser)
     if (err) return res.status(403).json({ error: err })
 
-    const sources = getAccessibleSources(data, rawUser)
+    db.write((d) => {
+      const u = d.users.find((x) => x.id === rawUser.id)
+      if (!u) return
+      maybeResetMonthlyTraffic(u, d)
+      migrateToDualWallets(u, d)
+      rawUser.traffic = u.traffic
+      rawUser.purchases = u.purchases
+    })
+
+    const traffic = getUserTraffic(rawUser, data)
+    let sources = getAccessibleSources(data, rawUser)
+
+    // dual-pool gate: drop locked sources if paid pool exhausted
+    if (traffic.paid?.exhausted) {
+      sources = sources.filter((s) => {
+        const access = s.access === 'locked' || s.tier === 'paid' ? 'locked' : 'public'
+        return access === 'public'
+      })
+    }
+    // free pool exhausted (limited): still keep locked if paid ok; drop nothing for public
+    // if paid exhausted and free also exhausted with only public left → allow public if free unlimited
+    if (traffic.free?.exhausted && traffic.paid?.exhausted) {
+      return res.status(403).json({
+        error: '免费与付费流量均已用尽，请续费或签到领取',
+        traffic: {
+          free: traffic.free,
+          paid: traffic.paid,
+          exhausted: true,
+          label: traffic.label,
+        },
+      })
+    }
+    if (traffic.paid?.exhausted && sources.length === 0) {
+      return res.status(403).json({
+        error: '付费流量已用尽，且无可同步的公开线路',
+        traffic: { free: traffic.free, paid: traffic.paid, exhausted: true },
+      })
+    }
+
     const merged = await mergeSourcesForUser(sources, rawUser.username)
+    const entitlementUntil = maxPurchaseExpireAt(rawUser, nowTs())
+
+    // Dashboard: show paid pool if paid user, else free (plus dual in new fields)
+    const show = traffic.is_paid_user && !traffic.paid.unlimited ? traffic.paid : traffic.free
+    const trafficTotal = show.unlimited
+      ? Math.max(show.used_bytes + 1024 ** 4, 1024 ** 4)
+      : show.limit_bytes
+    const trafficUsed = show.used_bytes
 
     res.json({
       name: merged.name,
       updated_at: nowTs(),
-      expire_at: rawUser.expire_at,
+      expire_at: entitlementUntil || rawUser.expire_at || 0,
       plan: enrichUser(rawUser, data)?.plan_name || 'free',
       content: merged.content,
       source: merged.from,
-      traffic_total: 100 * 1024 * 1024 * 1024,
+      traffic_upload: 0,
+      traffic_download: trafficUsed,
+      traffic_total: trafficTotal,
+      traffic_unlimited: show.unlimited,
+      traffic_remaining: show.remaining_bytes,
+      traffic_exhausted: show.exhausted,
+      traffic_label: `免费 ${traffic.free.label} · 付费 ${traffic.paid.label}`,
+      traffic_free: traffic.free,
+      traffic_paid: traffic.paid,
+      is_paid_user: traffic.is_paid_user,
       node_count: merged.node_count,
       free_count: merged.free_count,
       paid_count: merged.paid_count,
       nodes: (merged.nodes || []).slice(0, 300),
       parts: merged.parts,
       access_key: accessFingerprint(data, rawUser),
+      paid_sources_filtered: traffic.paid?.exhausted || false,
     })
   } catch (e) {
     res.status(502).json({ error: e.message || '拉取订阅失败' })
@@ -974,6 +2210,7 @@ api.get('/admin/users', authMiddleware('admin'), (_req, res) => {
       const full = enrichUser(u, data)
       const entitlementUntil = maxPurchaseExpireAt(u, now)
       const activePurchases = (full.purchases || []).length
+      const traffic = getUserTraffic(u, data, now)
       return {
         id: u.id,
         username: u.username,
@@ -990,10 +2227,99 @@ api.get('/admin/users', authMiddleware('admin'), (_req, res) => {
         free_sources: full.free_sources,
         paid_sources: full.paid_sources,
         purchases: full.purchases,
+        traffic_unlimited: traffic.unlimited,
+        traffic_limit_bytes: traffic.limit_bytes,
+        traffic_used_bytes: traffic.used_bytes,
+        traffic_remaining_bytes: traffic.remaining_bytes,
+        traffic_exhausted: traffic.exhausted,
+        traffic_free: traffic.free,
+        traffic_paid: traffic.paid,
+        is_paid_user: traffic.is_paid_user,
+        traffic_label: `免费 ${traffic.free?.label || '—'} · 付费 ${traffic.paid?.label || '—'}`,
+        balance_cents: getBalanceCents(u),
+        balance_yuan: formatYuan(getBalanceCents(u)),
       }
     })
     .sort((a, b) => b.created_at - a.created_at)
   res.json({ items })
+})
+
+/**
+ * Admin adjust user store balance.
+ * Body: { delta_cents }  positive=credit, negative=debit
+ *    or { amount_cents, direction: 'credit'|'debit' }
+ *    + reason
+ */
+api.post('/admin/users/:id/balance', authMiddleware('admin'), (req, res) => {
+  try {
+    const actor = req.auth?.username || req.auth?.sub || 'admin'
+    const reason = String(req.body?.reason || req.body?.note || 'admin adjust').slice(0, 200)
+    const result = db.write((data) => {
+      const user = data.users.find((u) => u.id === req.params.id)
+      if (!user) throw new Error('用户不存在')
+      ensureBalance(user)
+      let delta = Math.floor(Number(req.body?.delta_cents))
+      if (!Number.isFinite(delta)) {
+        const amount = Math.max(0, Math.floor(Number(req.body?.amount_cents) || 0))
+        const dir = String(req.body?.direction || 'credit').toLowerCase()
+        delta = dir === 'debit' ? -amount : amount
+      }
+      if (!delta) throw new Error('调整金额不能为 0')
+      let r
+      if (delta > 0) {
+        r = creditBalance(user, delta, {
+          type: 'admin_adjust',
+          reason,
+          ref_type: 'admin',
+          ref_id: actor,
+          actor,
+        })
+      } else {
+        r = debitBalance(user, Math.abs(delta), {
+          type: 'admin_adjust',
+          reason,
+          ref_type: 'admin',
+          ref_id: actor,
+          actor,
+        })
+      }
+      appendAudit(data, {
+        actor,
+        actor_type: 'admin',
+        action: 'user.balance_adjust',
+        target: user.id,
+        detail: {
+          delta_cents: delta,
+          balance_cents: r.balance_cents,
+          reason,
+        },
+        ip: clientIp(req),
+      })
+      return {
+        user_id: user.id,
+        username: user.username,
+        balance_cents: r.balance_cents,
+        balance_yuan: formatYuan(r.balance_cents),
+        delta_cents: delta,
+      }
+    })
+    res.json({ ok: true, ...result })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+api.get('/admin/users/:id/balance/ledger', authMiddleware('admin'), (req, res) => {
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.params.id)
+  if (!user) return res.status(404).json({ error: '用户不存在' })
+  res.json({
+    user_id: user.id,
+    username: user.username,
+    balance_cents: getBalanceCents(user),
+    balance_yuan: formatYuan(getBalanceCents(user)),
+    items: listBalanceLedger(user, Number(req.query?.limit || 100)),
+  })
 })
 
 /** Admin: list coupons */
@@ -1145,20 +2471,348 @@ api.delete('/admin/users/:id', authMiddleware('admin'), (req, res) => {
 })
 
 api.post('/admin/users/:id/reset-password', authMiddleware('admin'), (req, res) => {
-  const password = String(req.body?.password || '123456')
-  if (password.length < 6) return res.status(400).json({ error: '密码至少 6 位' })
+  const password = String(req.body?.password || '')
+  if (password.length < 6) {
+    return res.status(400).json({ error: '请提供至少 6 位的新密码' })
+  }
   try {
     db.write((data) => {
       const user = data.users.find((u) => u.id === req.params.id)
       if (!user) throw new Error('用户不存在')
       user.password_hash = hashPassword(password)
       user.updated_at = nowTs()
+      appendAudit(data, {
+        actor: req.auth?.username || 'admin',
+        actor_type: 'admin',
+        action: 'user.reset_password',
+        target: user.id,
+        ip: clientIp(req),
+      })
     })
-    res.json({ ok: true, password })
+    // Never echo the cleartext password back to the caller.
+    res.json({ ok: true, message: '密码已重置，请以新密码登录' })
   } catch (e) {
     res.status(404).json({ error: e.message })
   }
 })
+
+/**
+ * Public account recovery: request a password reset email OTP (rate limited).
+ * Preferred flow for the desktop client: 6-digit code.
+ * Body: { email }
+ * Also accepts legacy link mode via { email, mode: 'link' }.
+ */
+api.post('/auth/password-reset/request', async (req, res) => {
+  const ip = clientIp(req)
+  const rl = hitRateLimit(`pwreset:${ip}`, { limit: 8, windowMs: 3600_000 })
+  if (!rl.ok) return res.status(429).json({ error: rl.error })
+  const email = String(req.body?.email || '').trim().toLowerCase()
+  if (!isValidEmail(email)) return res.status(400).json({ error: '请填写有效邮箱' })
+  if (!isMailConfigured()) {
+    return res.status(503).json({ error: '邮件服务未配置，无法找回密码' })
+  }
+
+  const mode = String(req.body?.mode || 'code').toLowerCase()
+  if (mode === 'link') {
+    // legacy link email — always 200 to avoid enumeration
+    void notifyPasswordResetAsync(email, ip)
+    return res.json({ ok: true, message: '若该邮箱已注册，重置链接已发送' })
+  }
+
+  // default: OTP code (reuse /auth/email-code/send logic inline for same shape)
+  try {
+    const issued = db.write((data) => {
+      const user = (data.users || []).find(
+        (u) => String(u.email || '').toLowerCase() === email,
+      )
+      if (!user || (user.status && user.status !== 'active')) {
+        return { ok: false, silent: true }
+      }
+      return issueEmailOtp(data, { email, purpose: 'reset_password' })
+    })
+    if (issued?.silent) {
+      return res.json({
+        ok: true,
+        message: '若该邮箱已注册，验证码已发送',
+        expires_in: 600,
+        cooldown: 60,
+      })
+    }
+    if (!issued?.ok) {
+      return res.status(429).json({
+        error: issued?.error || '发送过于频繁',
+        retry_after: issued?.retry_after,
+      })
+    }
+    try {
+      await sendOtpMail({
+        email: issued.email,
+        purpose: 'reset_password',
+        code: issued.code,
+      })
+    } catch (e) {
+      console.error('[recovery] otp send failed:', e.message || e)
+      return res.status(502).json({ error: '验证码邮件发送失败，请稍后重试' })
+    }
+    db.write((data) => {
+      appendAudit(data, {
+        actor: 'system',
+        actor_type: 'system',
+        action: 'auth.password_reset_otp',
+        detail: { email, ip },
+        ip,
+      })
+    })
+    res.json({
+      ok: true,
+      message: '若该邮箱已注册，验证码已发送',
+      expires_in: issued.expires_in,
+      cooldown: 60,
+    })
+  } catch (e) {
+    res.status(400).json({ error: e.message || '请求失败' })
+  }
+})
+
+/**
+ * Complete password reset.
+ * Preferred: { email, email_code|code, new_password }
+ * Legacy:    { token, new_password }
+ */
+api.post('/auth/password-reset/complete', (req, res) => {
+  const token = String(req.body?.token || '')
+  const email = String(req.body?.email || '')
+    .trim()
+    .toLowerCase()
+  const email_code = String(
+    req.body?.email_code || req.body?.code || req.body?.verify_code || '',
+  ).trim()
+  const newPassword = String(req.body?.new_password || req.body?.password || '')
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: '新密码至少 6 位' })
+  }
+  try {
+    db.write((data) => {
+      let user = null
+      if (email && email_code) {
+        const verified = consumeEmailOtp(data, {
+          email,
+          purpose: 'reset_password',
+          code: email_code,
+        })
+        if (!verified.ok) throw new Error(verified.error || '验证码无效')
+        user = (data.users || []).find(
+          (u) => String(u.email || '').toLowerCase() === email,
+        )
+        if (!user) throw new Error('账号不存在')
+      } else if (token) {
+        const consumed = consumePasswordResetToken(data, token)
+        if (!consumed.ok) throw new Error(consumed.error)
+        user = consumed.user
+      } else {
+        throw new Error('请提供邮箱验证码或重置令牌')
+      }
+      if (user.status && user.status !== 'active') throw new Error('账号不可用')
+      if (checkPassword(newPassword, user.password_hash)) {
+        throw new Error('新密码不能与旧密码相同')
+      }
+      user.password_hash = hashPassword(newPassword)
+      user.updated_at = nowTs()
+      appendAudit(data, {
+        actor: user.username,
+        actor_type: 'user',
+        action: 'auth.password_reset',
+        target: user.id,
+        ip: clientIp(req),
+      })
+    })
+    res.json({ ok: true, message: '密码已重置，请使用新密码登录' })
+  } catch (e) {
+    res.status(400).json({ error: e.message })
+  }
+})
+
+/**
+ * Send delete-account OTP to the logged-in user's bound email.
+ */
+api.post('/client/delete-account/send-code', authMiddleware('user'), async (req, res) => {
+  const ip = clientIp(req)
+  const rl = hitRateLimit(`delotp:${req.auth.sub}`, { limit: 6, windowMs: 3600_000 })
+  if (!rl.ok) return res.status(429).json({ error: rl.error })
+  if (!isMailConfigured()) {
+    return res.status(503).json({ error: '邮件服务未配置，无法发送注销验证码' })
+  }
+
+  const data = db.read()
+  const user = data.users.find((u) => u.id === req.auth.sub)
+  if (!user) return res.status(401).json({ error: '请先登录' })
+  const err = ensureActive(user)
+  if (err) return res.status(403).json({ error: err })
+  const email = String(user.email || '')
+    .trim()
+    .toLowerCase()
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: '请先绑定有效邮箱后再注销账号' })
+  }
+
+  try {
+    const issued = db.write((d) => issueEmailOtp(d, { email, purpose: 'delete_account' }))
+    if (!issued?.ok) {
+      return res.status(429).json({
+        error: issued?.error || '发送过于频繁',
+        retry_after: issued?.retry_after,
+      })
+    }
+    try {
+      await sendOtpMail({
+        email: issued.email,
+        purpose: 'delete_account',
+        code: issued.code,
+      })
+    } catch (e) {
+      console.error('[delete] otp send failed:', e.message || e)
+      return res.status(502).json({ error: '验证码邮件发送失败，请稍后重试' })
+    }
+    db.write((d) => {
+      appendAudit(d, {
+        actor: user.username,
+        actor_type: 'user',
+        action: 'auth.delete_account_otp',
+        target: user.id,
+        ip,
+      })
+    })
+    // mask email for UI: a***@b.com
+    const [local, domain] = email.split('@')
+    const masked =
+      local.length <= 2
+        ? `*@${domain}`
+        : `${local[0]}***${local[local.length - 1]}@${domain}`
+    res.json({
+      ok: true,
+      message: `验证码已发送至 ${masked}`,
+      email_masked: masked,
+      expires_in: issued.expires_in,
+      cooldown: 60,
+    })
+  } catch (e) {
+    res.status(400).json({ error: e.message || '发送失败' })
+  }
+})
+
+/**
+ * User self-service account deletion (注销).
+ * Body: { password, email_code }
+ * Requires: bound email + OTP mailed to that address + login password.
+ * Soft-delete: free username/email for re-registration, strip credentials & devices.
+ */
+api.post('/client/delete-account', authMiddleware('user'), (req, res) => {
+  const password = String(req.body?.password || '')
+  const email_code = String(
+    req.body?.email_code || req.body?.code || req.body?.verify_code || '',
+  ).trim()
+  if (!password) return res.status(400).json({ error: '请输入登录密码以确认注销' })
+  if (!/^\d{6}$/.test(email_code)) {
+    return res.status(400).json({ error: '请填写邮箱收到的 6 位验证码' })
+  }
+  if (!isMailConfigured()) {
+    return res.status(503).json({ error: '邮件服务未配置，无法完成注销' })
+  }
+  try {
+    db.write((data) => {
+      const user = data.users.find((u) => u.id === req.auth.sub)
+      if (!user) throw new Error('用户不存在')
+      if (user.status === 'deleted') throw new Error('账号已注销')
+      const email = String(user.email || '')
+        .trim()
+        .toLowerCase()
+      if (!isValidEmail(email)) throw new Error('请先绑定有效邮箱后再注销账号')
+      if (!checkPassword(password, user.password_hash)) {
+        throw new Error('密码错误')
+      }
+      const verified = consumeEmailOtp(data, {
+        email,
+        purpose: 'delete_account',
+        code: email_code,
+      })
+      if (!verified.ok) throw new Error(verified.error || '邮箱验证码无效')
+
+      const now = nowTs()
+      const oldUsername = user.username
+      const oldEmail = email
+      // free credentials for future registration
+      user.status = 'deleted'
+      user.deleted_at = now
+      user.username = `__deleted__${user.id}`
+      user.email = ''
+      user.email_verified_at = 0
+      user.password_hash = hashPassword(
+        `deleted:${user.id}:${now}:${Math.random().toString(36).slice(2)}`,
+      )
+      user.purchases = []
+      user.devices = []
+      user.plan_id = null
+      user.expire_at = 0
+      user.invite_code = user.invite_code || ''
+      user.traffic = {
+        free: { limit_bytes: 0, used_bytes: 0 },
+        paid: { limit_bytes: 0, used_bytes: 0 },
+        _v2: 2,
+      }
+      user.updated_at = now
+      if (Array.isArray(data.email_otps) && oldEmail) {
+        data.email_otps = data.email_otps.filter(
+          (t) => String(t.email || '').toLowerCase() !== oldEmail,
+        )
+      }
+      if (Array.isArray(data.email_tokens)) {
+        data.email_tokens = data.email_tokens.filter((t) => t.user_id !== user.id)
+      }
+      appendAudit(data, {
+        actor: oldUsername,
+        actor_type: 'user',
+        action: 'auth.delete_account',
+        target: user.id,
+        detail: { email: '[redacted]', via: 'email_otp+password' },
+        ip: clientIp(req),
+      })
+    })
+    res.json({ ok: true, message: '账号已注销，相关数据已清除' })
+  } catch (e) {
+    res.status(e.message === '用户不存在' ? 404 : 400).json({ error: e.message })
+  }
+})
+
+async function notifyPasswordResetAsync(email, ip) {
+  try {
+    const issued = db.write((data) => issuePasswordReset(data, email))
+    if (!issued.ok) return
+    await sendMail({
+      to: email,
+      subject: 'Fork · 密码重置',
+      text: `您正在重置 Fork 账号密码，请在 30 分钟内使用此链接完成重置：\n\n${resetLink(issued.token)}\n\n如非本人操作请忽略此邮件并尽快修改密码。`,
+      html: `<p>您正在重置 Fork 账号密码，请在 30 分钟内点击下方链接完成重置：</p><p><a href="${resetLink(issued.token)}">${resetLink(issued.token)}</a></p><p>如非本人操作请忽略此邮件并尽快修改密码。</p>`,
+    })
+    db.write((data) => {
+      appendAudit(data, {
+        actor: 'system',
+        actor_type: 'system',
+        action: 'auth.password_reset_request',
+        detail: { email, ip },
+        ip,
+      })
+    })
+  } catch (e) {
+    console.error('[recovery] password reset email failed:', e.message || e)
+  }
+}
+
+function resetLink(token) {
+  const base = String(
+    process.env.FORK_PUBLIC_URL || process.env.PUBLIC_URL || '',
+  ).replace(/\/$/, '')
+  return `${base}/reset-password?token=${encodeURIComponent(token)}`
+}
 
 /** Revoke one product entitlement from user */
 api.delete('/admin/users/:id/purchases/:productId', authMiddleware('admin'), (req, res) => {
@@ -1187,6 +2841,77 @@ api.delete('/admin/users/:id/purchases/:productId', authMiddleware('admin'), (re
     res.json(result)
   } catch (e) {
     res.status(404).json({ error: e.message })
+  }
+})
+
+/**
+ * Admin: reset or set traffic usage for a user.
+ * Body: { reset: true } | { traffic_used_bytes: number } | { product_id, traffic_used_bytes }
+ */
+api.post('/admin/users/:id/traffic', authMiddleware('admin'), (req, res) => {
+  try {
+    let traffic
+    db.write((data) => {
+      const user = data.users.find((u) => u.id === req.params.id)
+      if (!user) throw new Error('用户不存在')
+      if (!Array.isArray(user.purchases)) user.purchases = []
+      const productId = req.body?.product_id ? String(req.body.product_id) : ''
+      const reset = req.body?.reset === true || req.body?.reset === 1 || req.body?.reset === '1'
+      ensureTrafficWallets(user)
+      migrateToDualWallets(user, data)
+      if (reset) {
+        // clear both account wallets' used counters
+        user.traffic.free.used_bytes = 0
+        user.traffic.paid.used_bytes = 0
+        for (const p of user.purchases || []) {
+          p.traffic_used_bytes = 0
+        }
+      }
+      if (req.body?.free_limit_bytes !== undefined) {
+        user.traffic.free.limit_bytes = Math.max(0, Math.floor(Number(req.body.free_limit_bytes) || 0))
+      }
+      if (req.body?.paid_limit_bytes !== undefined) {
+        user.traffic.paid.limit_bytes = Math.max(0, Math.floor(Number(req.body.paid_limit_bytes) || 0))
+      }
+      if (req.body?.free_used_bytes !== undefined) {
+        user.traffic.free.used_bytes = Math.max(0, Math.floor(Number(req.body.free_used_bytes) || 0))
+      }
+      if (req.body?.paid_used_bytes !== undefined) {
+        user.traffic.paid.used_bytes = Math.max(0, Math.floor(Number(req.body.paid_used_bytes) || 0))
+      }
+      if (productId) {
+        const p = user.purchases.find((x) => x.product_id === productId)
+        if (!p) throw new Error('该用户无此商品权益')
+        p.updated_at = nowTs()
+      }
+      user.updated_at = nowTs()
+      traffic = getUserTraffic(user, data)
+      appendAudit(data, {
+        actor: req.auth?.username || 'admin',
+        actor_type: 'admin',
+        action: 'user.traffic',
+        target: user.id,
+        detail: { reset: req.body?.reset === true, product_id: req.body?.product_id || null },
+        ip: clientIp(req),
+      })
+    })
+    res.json({
+      ok: true,
+      traffic: {
+        unlimited: traffic.unlimited,
+        limit_bytes: traffic.limit_bytes,
+        used_bytes: traffic.used_bytes,
+        remaining_bytes: traffic.remaining_bytes,
+        exhausted: traffic.exhausted,
+        label: traffic.unlimited
+          ? `已用 ${formatBytes(traffic.used_bytes)} / 不限流量`
+          : `${formatBytes(traffic.used_bytes)} / ${formatBytes(traffic.limit_bytes)}`,
+      },
+    })
+  } catch (e) {
+    res.status(e.message === '用户不存在' || e.message.includes('无此') ? 404 : 400).json({
+      error: e.message,
+    })
   }
 })
 
@@ -1412,7 +3137,12 @@ api.post('/admin/plans', authMiddleware('admin'), (req, res) => {
   try {
     const id = nanoid()
     const days = Number(req.body?.trial_days || req.body?.duration_days || 30)
+    const price_cents = Number(req.body?.price_cents || 0)
+    const traffic_bytes = Number(req.body?.traffic_bytes || 0)
+    const traffic_reset =
+      req.body?.traffic_reset === 'monthly' ? 'monthly' : 'never'
     db.write((data) => {
+      assertPaidTrafficQuota(price_cents, traffic_bytes, data.settings)
       if (data.plans.some((p) => p.name === name)) throw new Error('商品名已存在')
       data.plans.push({
         id,
@@ -1421,16 +3151,25 @@ api.post('/admin/plans', authMiddleware('admin'), (req, res) => {
         source_id: req.body?.source_id || null,
         trial_days: days,
         duration_days: days,
-        traffic_bytes: Number(req.body?.traffic_bytes || 0),
+        traffic_bytes,
+        traffic_reset,
         description: String(req.body?.description || ''),
-        price_cents: Number(req.body?.price_cents || 0),
+        price_cents,
         for_sale: req.body?.for_sale !== false,
         created_at: nowTs(),
+      })
+      appendAudit(data, {
+        actor: req.auth?.username || 'admin',
+        actor_type: 'admin',
+        action: 'plan.create',
+        target: id,
+        detail: { name, price_cents, traffic_bytes, traffic_reset },
+        ip: clientIp(req),
       })
     })
     res.json({ id })
   } catch (e) {
-    res.status(409).json({ error: e.message })
+    res.status(e.message.includes('流量') ? 400 : 409).json({ error: e.message })
   }
 })
 
@@ -1464,14 +3203,25 @@ api.patch('/admin/plans/:id', authMiddleware('admin'), (req, res) => {
       if (req.body?.traffic_bytes !== undefined) {
         row.traffic_bytes = Number(req.body.traffic_bytes)
       }
+      if (req.body?.traffic_reset !== undefined) {
+        row.traffic_reset = req.body.traffic_reset === 'monthly' ? 'monthly' : 'never'
+      }
       if (req.body?.description !== undefined) row.description = req.body.description
       if (req.body?.price_cents !== undefined) row.price_cents = Number(req.body.price_cents)
       if (req.body?.for_sale !== undefined) row.for_sale = Boolean(req.body.for_sale)
+      assertPaidTrafficQuota(row.price_cents, row.traffic_bytes, data.settings)
       row.kind = 'product'
+      appendAudit(data, {
+        actor: req.auth?.username || 'admin',
+        actor_type: 'admin',
+        action: 'plan.patch',
+        target: row.id,
+        ip: clientIp(req),
+      })
     })
     res.json({ ok: true })
   } catch (e) {
-    res.status(404).json({ error: e.message })
+    res.status(e.message.includes('流量') ? 400 : 404).json({ error: e.message })
   }
 })
 

@@ -1,5 +1,6 @@
 use super::PRODUCT_NAME;
 use super::api::{self, ApiSession};
+use super::secure_store;
 use crate::utils::dirs;
 use anyhow::{Context as _, Result, bail};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -81,10 +82,26 @@ fn from_api(api: ApiSession) -> AuthSession {
 }
 
 async fn save_session(session: &AuthSession) -> Result<()> {
-    write_json_file(&session_path()?, session).await
+    // Persist credentials to the OS credential store when available, deleting any
+    // legacy plaintext session file afterwards. If the secure store is unavailable
+    // we fall back to the JSON file but mark it so callers can warn the user.
+    match secure_store::save_session(session).await {
+        Ok(()) => {
+            let legacy = session_path()?;
+            if legacy.exists() {
+                let _ = fs::remove_file(&legacy).await;
+            }
+            Ok(())
+        }
+        Err(error) => {
+            log::warn!("[commercial] secure session store unavailable, falling back to plaintext file: {error}");
+            write_json_file(&session_path()?, session).await
+        }
+    }
 }
 
 pub async fn clear_session() -> Result<()> {
+    let _ = secure_store::delete_session().await;
     let path = session_path()?;
     if path.exists() {
         fs::remove_file(&path).await.ok();
@@ -93,12 +110,20 @@ pub async fn clear_session() -> Result<()> {
 }
 
 pub async fn load_session() -> Result<Option<AuthSession>> {
+    if let Some(session) = secure_store::load_session().await? {
+        return Ok(Some(session));
+    }
     let path = session_path()?;
     if !path.exists() {
         return Ok(None);
     }
     match read_json_file::<AuthSession>(&path).await {
-        Ok(session) => Ok(Some(session)),
+        Ok(session) => {
+            // Migrate the legacy plaintext session into the secure store, then remove the file.
+            let _ = secure_store::save_session(&session).await;
+            let _ = fs::remove_file(&path).await;
+            Ok(Some(session))
+        }
         Err(_) => {
             let _ = clear_session().await;
             Ok(None)
@@ -106,18 +131,88 @@ pub async fn load_session() -> Result<Option<AuthSession>> {
     }
 }
 
-pub async fn register(username: &str, password: &str, email: &str) -> Result<AuthSession> {
-    let api_sess = api::register(username.trim(), password, email.trim()).await?;
+pub async fn register(
+    username: &str,
+    password: &str,
+    email: &str,
+    invite_code: Option<&str>,
+    email_code: Option<&str>,
+) -> Result<AuthSession> {
+    let api_sess = api::register(
+        username.trim(),
+        password,
+        email.trim(),
+        invite_code,
+        email_code,
+    )
+    .await?;
     let session = from_api(api_sess);
     save_session(&session).await?;
     Ok(session)
 }
 
-pub async fn login(username: &str, password: &str) -> Result<AuthSession> {
-    let api_sess = api::login(username.trim(), password).await?;
+pub async fn send_email_code(email: &str, purpose: &str) -> Result<serde_json::Value> {
+    api::send_email_code(email.trim(), purpose.trim()).await
+}
+
+pub async fn email_status() -> Result<serde_json::Value> {
+    api::email_status().await
+}
+
+pub async fn password_reset_request(email: &str) -> Result<serde_json::Value> {
+    api::password_reset_request(email.trim()).await
+}
+
+pub async fn password_reset_complete(
+    email: &str,
+    email_code: &str,
+    new_password: &str,
+) -> Result<serde_json::Value> {
+    api::password_reset_complete(email.trim(), email_code.trim(), new_password).await
+}
+
+pub async fn delete_account_send_code() -> Result<serde_json::Value> {
+    let session = require_session().await?;
+    api::delete_account_send_code(session.token.as_str()).await
+}
+
+pub async fn delete_account(password: &str, email_code: &str) -> Result<serde_json::Value> {
+    let session = require_session().await?;
+    let result =
+        api::delete_account(session.token.as_str(), password, email_code.trim()).await?;
+    // always clear local session after successful deletion
+    let _ = clear_session().await;
+    Ok(result)
+}
+
+pub async fn login(
+    username: &str,
+    password: &str,
+    device_id: Option<&str>,
+    device_name: Option<&str>,
+    platform: Option<&str>,
+) -> Result<AuthSession> {
+    let api_sess = api::login(
+        username.trim(),
+        password,
+        device_id,
+        device_name,
+        platform,
+    )
+    .await?;
     let session = from_api(api_sess);
     save_session(&session).await?;
     Ok(session)
+}
+
+pub async fn report_traffic(delta_bytes: u64, pool: Option<String>) -> Result<serde_json::Value> {
+    let session = require_session().await?;
+    api::report_traffic(session.token.as_str(), delta_bytes, pool.as_deref()).await
+}
+
+pub async fn remove_device(device_id: &str) -> Result<serde_json::Value> {
+    let session = require_session().await?;
+    api::remove_device(session.token.as_str(), device_id).await
 }
 
 pub async fn logout() -> Result<()> {

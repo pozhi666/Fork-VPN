@@ -3,7 +3,7 @@ import {
   LanguageRounded,
   MultipleStopRounded,
 } from '@mui/icons-material'
-import { Box, Paper, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography, alpha } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -122,108 +122,80 @@ export const ClashModeCard = () => {
     setOptimisticMode(null)
   })
 
-  // 按钮样式
-  const buttonStyles = (mode: ClashMode) => ({
-    cursor: 'pointer',
-    px: 2,
-    py: 1.2,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 1,
-    bgcolor: mode === currentMode ? 'primary.main' : 'background.paper',
-    color: mode === currentMode ? 'primary.contrastText' : 'text.primary',
-    borderRadius: 1.5,
-    transition: 'all 0.2s ease-in-out',
-    position: 'relative',
-    overflow: 'visible',
-    '&:hover': {
-      transform: 'translateY(-1px)',
-      boxShadow: 1,
-    },
-    '&:active': {
-      transform: 'translateY(1px)',
-    },
-    '&::after':
-      mode === currentMode
-        ? {
-            content: '""',
-            position: 'absolute',
-            bottom: -16,
-            left: '50%',
-            width: 2,
-            height: 16,
-            bgcolor: 'primary.main',
-            transform: 'translateX(-50%)',
-          }
-        : {},
-  })
-
-  // 描述样式
-  const descriptionStyles = {
-    width: '95%',
-    textAlign: 'center',
-    color: 'text.secondary',
-    p: 0.8,
-    borderRadius: 1,
-    borderColor: 'primary.main',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    backgroundColor: 'background.paper',
-    wordBreak: 'break-word',
-    hyphens: 'auto',
-  }
-
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      {/* 模式选择按钮组 */}
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          py: 1,
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        {CLASH_MODES.map((mode) => (
-          <Paper
-            key={mode}
-            elevation={mode === currentMode ? 2 : 0}
-            onClick={() => onChangeMode(mode)}
-            sx={buttonStyles(mode)}
-          >
-            {MODE_ICONS[mode]}
-            <Typography
-              variant="body2"
-              sx={{
-                textTransform: 'capitalize',
-                fontWeight: mode === currentMode ? 600 : 400,
-              }}
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 1.25 }}>
+      <Stack direction="row" spacing={1} sx={{ width: '100%' }}>
+        {CLASH_MODES.map((mode) => {
+          const active = mode === currentMode
+          return (
+            <Box
+              key={mode}
+              onClick={() => onChangeMode(mode)}
+              sx={(theme) => ({
+                cursor: 'pointer',
+                flex: 1,
+                px: 1.25,
+                py: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0.65,
+                borderRadius: '8px',
+                border: 'none',
+                bgcolor: active
+                  ? alpha(
+                      theme.palette.primary.main,
+                      theme.palette.mode === 'dark' ? 0.16 : 0.1,
+                    )
+                  : theme.palette.mode === 'dark'
+                    ? 'rgba(255,255,255,0.04)'
+                    : 'rgba(17,24,39,0.04)',
+                color: active ? 'primary.main' : 'text.secondary',
+                transition: 'background .12s ease, color .12s ease',
+                '&:hover': {
+                  bgcolor: active
+                    ? alpha(theme.palette.primary.main, 0.2)
+                    : theme.palette.mode === 'dark'
+                      ? 'rgba(255,255,255,0.06)'
+                      : 'rgba(17,24,39,0.06)',
+                  color: active ? 'primary.main' : 'text.primary',
+                },
+              })}
             >
-              {t(MODE_META[mode].label)}
-            </Typography>
-          </Paper>
-        ))}
+              {MODE_ICONS[mode]}
+              <Typography
+                variant="body2"
+                sx={{
+                  textTransform: 'capitalize',
+                  fontWeight: active ? 700 : 500,
+                  fontSize: 13,
+                }}
+              >
+                {t(MODE_META[mode].label)}
+              </Typography>
+            </Box>
+          )
+        })}
       </Stack>
 
-      {/* 说明文本区域 */}
-      <Box
-        sx={{
+      <Typography
+        variant="caption"
+        sx={(theme) => ({
           width: '100%',
-          my: 1,
-          position: 'relative',
-          display: 'flex',
-          justifyContent: 'center',
-          overflow: 'visible',
-        }}
+          textAlign: 'center',
+          color: 'text.secondary',
+          px: 1.25,
+          py: 0.85,
+          borderRadius: '8px',
+          bgcolor:
+            theme.palette.mode === 'dark'
+              ? 'rgba(255,255,255,0.03)'
+              : 'rgba(17,24,39,0.03)',
+          lineHeight: 1.5,
+        })}
       >
-        <Typography variant="caption" component="div" sx={descriptionStyles}>
-          {modeDescription}
-        </Typography>
-      </Box>
+        {modeDescription}
+      </Typography>
     </Box>
   )
 }

@@ -3,6 +3,13 @@ export const COMMERCIAL_MODE = true
 
 export const PRODUCT_NAME = 'Fork'
 
+/** Public site (legal pages, landing). */
+export const SITE_ORIGIN = 'https://your-domain.example'
+export const TERMS_URL = `${SITE_ORIGIN}/terms.html`
+export const PRIVACY_URL = `${SITE_ORIGIN}/privacy.html`
+export const OPENSOURCE_URL = `${SITE_ORIGIN}/opensource.html`
+export const SUPPORT_TG = 'https://t.me/forkdl'
+
 /** Matches Rust `commercial::OFFICIAL_PROFILE_*` — server-managed, not user-import. */
 export const OFFICIAL_PROFILE_MARKER = 'fork-official'
 export const OFFICIAL_PROFILE_NAME = '官方线路'

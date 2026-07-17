@@ -6,19 +6,24 @@ import { useTranslation } from 'react-i18next'
 import { closeAllConnections } from 'tauri-plugin-mihomo-api'
 
 import { BasePage, TooltipIcon } from '@/components/base'
+import { notifyEntitlementUpdated } from '@/components/home/home-profile-card'
 import { ProviderButton } from '@/components/proxy/provider-button'
 import { ProxyGroups } from '@/components/proxy/proxy-groups'
+import { COMMERCIAL_MODE } from '@/config/commercial'
 import { useVerge } from '@/hooks/use-verge'
 import {
   useAppRefreshers,
   useClashConfigData,
 } from '@/providers/app-data-context'
+import { useAuth } from '@/providers/auth-provider'
 import {
   getRuntimeProxyChainConfig,
   patchClashMode,
   updateProxyChainConfigInRuntime,
 } from '@/services/cmds'
+import { commercialReconcileAccess } from '@/services/commercial'
 import { showNotice } from '@/services/notice-service'
+import { revalidateQueries } from '@/services/query-client'
 import { debugLog } from '@/utils/debug'
 
 const MODES = ['rule', 'global', 'direct'] as const
@@ -29,6 +34,9 @@ const isMode = (value: unknown): value is Mode =>
 
 const ProxyPage = () => {
   const { t } = useTranslation()
+  const { session, ready, refreshSession } = useAuth()
+  const { clashConfig } = useClashConfigData()
+  const { refreshClashConfig, refreshProxy } = useAppRefreshers()
 
   // 从 localStorage 恢复链式代理按钮状态
   const [isChainMode, setIsChainMode] = useState(() => {
@@ -45,8 +53,44 @@ const ProxyPage = () => {
     null as string | null,
   )
 
-  const { clashConfig } = useClashConfigData()
-  const { refreshClashConfig } = useAppRefreshers()
+  // Enter Proxies → 先验权指纹，权益变了就重拉订阅（退款后不必再去商城同步）
+  useEffect(() => {
+    if (!COMMERCIAL_MODE || !ready || !session) return
+    let cancelled = false
+
+    const reconcile = async (force = false) => {
+      try {
+        await refreshSession()
+        if (cancelled) return
+        const synced = await commercialReconcileAccess({ force })
+        if (cancelled || !synced) return
+        notifyEntitlementUpdated()
+        await revalidateQueries([
+          ['getProfiles'],
+          ['getProxies'],
+          ['getClashConfig'],
+        ])
+        await refreshProxy()
+        await refreshClashConfig()
+        if (synced.message) {
+          debugLog('[proxies] access reconciled:', synced.message)
+        }
+      } catch (e) {
+        debugLog('[proxies] access reconcile failed', e)
+      }
+    }
+
+    void reconcile(true)
+
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void reconcile(false)
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [ready, session?.user_id, refreshSession, refreshProxy, refreshClashConfig])
 
   const updateChainConfigData = useCallback((value: string | null) => {
     dispatchChainConfigData(value)
@@ -160,16 +204,27 @@ const ProxyPage = () => {
         )
       }
       header={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <ProviderButton />
 
-          <ButtonGroup size="small">
+          <ButtonGroup
+            size="small"
+            sx={{
+              borderRadius: '10px',
+              overflow: 'hidden',
+              '& .MuiButton-root': {
+                textTransform: 'capitalize',
+                fontWeight: 600,
+                px: 1.5,
+                borderRadius: 0,
+              },
+            }}
+          >
             {MODES.map((mode) => (
               <Button
                 key={mode}
                 variant={mode === curMode ? 'contained' : 'outlined'}
                 onClick={() => onChangeMode(mode)}
-                sx={{ textTransform: 'capitalize' }}
               >
                 {t(`proxies.page.modes.${mode}`)}
               </Button>
@@ -180,7 +235,6 @@ const ProxyPage = () => {
             size="small"
             variant={isChainMode ? 'contained' : 'outlined'}
             onClick={onToggleChainMode}
-            sx={{ ml: 1 }}
             startIcon={
               isChainMode ? (
                 <LanRounded fontSize="small" />
@@ -188,17 +242,34 @@ const ProxyPage = () => {
                 <LanOutlined fontSize="small" />
               )
             }
+            sx={{ fontWeight: 600 }}
           >
             {t('proxies.page.actions.toggleChain')}
           </Button>
         </Box>
       }
     >
-      <ProxyGroups
-        mode={curMode ?? 'rule'}
-        isChainMode={isChainMode}
-        chainConfigData={chainConfigData}
-      />
+      <Box
+        sx={(theme) => ({
+          height: '100%',
+          mx: 1.25,
+          mb: 1.25,
+          borderRadius: '12px',
+          overflow: 'hidden',
+          bgcolor:
+            theme.palette.mode === 'dark' ? '#14181f' : 'rgba(255,255,255,0.85)',
+          border:
+            theme.palette.mode === 'dark'
+              ? 'none'
+              : '1px solid rgba(17,24,39,0.05)',
+        })}
+      >
+        <ProxyGroups
+          mode={curMode ?? 'rule'}
+          isChainMode={isChainMode}
+          chainConfigData={chainConfigData}
+        />
+      </Box>
     </BasePage>
   )
 }

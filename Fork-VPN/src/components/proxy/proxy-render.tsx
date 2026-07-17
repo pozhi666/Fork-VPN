@@ -58,7 +58,6 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const enable_group_icon = verge?.enable_group_icon ?? true
   const mode = useThemeMode()
   const isDark = mode === 'dark'
-  const itembackgroundcolor = isDark ? '#282A36' : '#ffffff'
   const iconCachePath = useIconCache({
     icon: group.icon,
     cacheKey: group.name.replaceAll(' ', ''),
@@ -85,19 +84,21 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
 
   if (type === 0) {
     return (
-      <div style={{ padding: '4px 8px' }}>
+      <div style={{ padding: '6px 10px 2px' }}>
         <ListItemButton
           dense
           sx={{
-            boxShadow:
-              stickyed && headState?.open
-                ? '0 4px 8px rgba(0, 0, 0, 0.2) !important'
-                : undefined,
-          }}
-          style={{
-            background: itembackgroundcolor,
             height: '100%',
             borderRadius: '8px',
+            border: 'none',
+            bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,24,39,0.03)',
+            boxShadow: 'none',
+            transition: 'background .12s ease',
+            '&:hover': {
+              bgcolor: isDark
+                ? 'rgba(255,255,255,0.06)'
+                : 'rgba(17,24,39,0.05)',
+            },
           }}
           onClick={() => {
             if (headState?.open) {
@@ -159,7 +160,11 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
             slotProps={{
               secondary: {
                 component: 'div',
-                sx: { display: 'flex', alignItems: 'center', color: '#ccc' },
+                sx: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'text.secondary',
+                },
               },
             }}
           />
@@ -283,12 +288,13 @@ const StyledSubtitle = styled('span')`
 
 const StyledTypeBox = styled(Box)(({ theme }) => ({
   display: 'inline-block',
-  border: '1px solid #ccc',
-  borderColor: alpha(theme.palette.primary.main, 0.5),
-  color: alpha(theme.palette.primary.main, 0.8),
-  borderRadius: 4,
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
+  borderColor: alpha(theme.palette.primary.main, 0.28),
+  color: alpha(theme.palette.primary.main, 0.85),
+  borderRadius: 6,
   fontSize: 10,
-  padding: '0 4px',
+  fontWeight: 600,
+  padding: '0 5px',
   lineHeight: 1.5,
   marginRight: '8px',
 }))

@@ -61,7 +61,8 @@ const RulesPage = () => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'auto',
+        overflow: 'hidden',
+        minHeight: 0,
       }}
       header={
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -70,33 +71,57 @@ const RulesPage = () => {
       }
     >
       <Box
-        sx={{
-          pt: 1,
-          mb: 0.5,
-          mx: '10px',
-          height: '36px',
+        sx={(theme) => ({
+          flex: 1,
+          minHeight: 0,
+          mx: 1.25,
+          mb: 1.25,
           display: 'flex',
-          alignItems: 'center',
-        }}
+          flexDirection: 'column',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          border:
+            theme.palette.mode === 'dark'
+              ? 'none'
+              : '1px solid rgba(17,24,39,0.05)',
+          bgcolor:
+            theme.palette.mode === 'dark' ? '#14181f' : 'rgba(255,255,255,0.85)',
+        })}
       >
-        <BaseSearchBox onSearch={(match) => setMatch(() => match)} />
-      </Box>
+        <Box
+          sx={{
+            pt: 1.25,
+            pb: 1,
+            px: 1.5,
+            height: 'auto',
+            minHeight: 40,
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '1px solid rgba(255,255,255,0.04)'
+                : '1px solid rgba(17,24,39,0.05)',
+          }}
+        >
+          <BaseSearchBox onSearch={(match) => setMatch(() => match)} />
+        </Box>
 
-      {filteredRules && filteredRules.length > 0 ? (
-        <>
-          <VirtualList
-            ref={virtuosoRef}
-            count={filteredRules.length}
-            estimateSize={40}
-            renderItem={(i) => <RuleItem value={filteredRules[i]} />}
-            style={{ flex: 1 }}
-            onScroll={handleScroll}
-          />
-          <ScrollTopButton onClick={scrollToTop} show={showScrollTop} />
-        </>
-      ) : (
-        <BaseEmpty />
-      )}
+        {filteredRules && filteredRules.length > 0 ? (
+          <>
+            <VirtualList
+              ref={virtuosoRef}
+              count={filteredRules.length}
+              estimateSize={40}
+              renderItem={(i) => <RuleItem value={filteredRules[i]} />}
+              style={{ flex: 1 }}
+              onScroll={handleScroll}
+            />
+            <ScrollTopButton onClick={scrollToTop} show={showScrollTop} />
+          </>
+        ) : (
+          <BaseEmpty />
+        )}
+      </Box>
     </BasePage>
   )
 }

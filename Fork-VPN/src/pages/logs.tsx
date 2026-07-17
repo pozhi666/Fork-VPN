@@ -95,7 +95,8 @@ const LogPage = () => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'auto',
+        overflow: 'hidden',
+        minHeight: 0,
       }}
       header={
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -152,54 +153,88 @@ const LogPage = () => {
       }
     >
       <Box
-        sx={{
-          pt: 1,
-          mb: 0.5,
-          mx: '10px',
-          height: '39px',
+        sx={(theme) => ({
+          flex: 1,
+          minHeight: 0,
+          mx: 1.25,
+          mb: 1.25,
           display: 'flex',
-          alignItems: 'center',
-        }}
+          flexDirection: 'column',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          border:
+            theme.palette.mode === 'dark'
+              ? 'none'
+              : '1px solid rgba(17,24,39,0.05)',
+          bgcolor:
+            theme.palette.mode === 'dark' ? '#14181f' : 'rgba(255,255,255,0.85)',
+        })}
       >
-        <BaseStyledSelect
-          value={logState}
-          onChange={(e) => handleLogLevelChange(e.target.value as LogFilter)}
+        <Box
+          sx={{
+            pt: 1.25,
+            pb: 1,
+            px: 1.5,
+            minHeight: 40,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            borderBottom: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '1px solid rgba(255,255,255,0.04)'
+                : '1px solid rgba(17,24,39,0.05)',
+          }}
         >
-          <MenuItem value="all">{t('shared.filters.logLevels.all')}</MenuItem>
-          <MenuItem value="debug">
-            {t('shared.filters.logLevels.debug')}
-          </MenuItem>
-          <MenuItem value="info">{t('shared.filters.logLevels.info')}</MenuItem>
-          <MenuItem value="warn">{t('shared.filters.logLevels.warn')}</MenuItem>
-          <MenuItem value="err">{t('shared.filters.logLevels.error')}</MenuItem>
-        </BaseStyledSelect>
-        <BaseSearchBox
-          onSearch={(matcher, state) => {
-            setMatch(() => matcher)
-            setSearchState(state)
-          }}
-        />
-      </Box>
+          <BaseStyledSelect
+            value={logState}
+            onChange={(e) => handleLogLevelChange(e.target.value as LogFilter)}
+          >
+            <MenuItem value="all">
+              {t('shared.filters.logLevels.all')}
+            </MenuItem>
+            <MenuItem value="debug">
+              {t('shared.filters.logLevels.debug')}
+            </MenuItem>
+            <MenuItem value="info">
+              {t('shared.filters.logLevels.info')}
+            </MenuItem>
+            <MenuItem value="warn">
+              {t('shared.filters.logLevels.warn')}
+            </MenuItem>
+            <MenuItem value="err">
+              {t('shared.filters.logLevels.error')}
+            </MenuItem>
+          </BaseStyledSelect>
+          <BaseSearchBox
+            onSearch={(matcher, state) => {
+              setMatch(() => matcher)
+              setSearchState(state)
+            }}
+          />
+        </Box>
 
-      {filteredLogs.length > 0 ? (
-        <VirtualList
-          ref={virtuosoRef}
-          count={filteredLogs.length}
-          estimateSize={50}
-          renderItem={(i) => (
-            <LogItem value={filteredLogs[i]} searchState={searchState} />
-          )}
-          onScroll={(event) => {
-            const element = event.currentTarget as HTMLDivElement
-            scrollRef.current.isNearBottom =
-              element.scrollHeight - element.scrollTop - element.clientHeight <=
-              20
-          }}
-          style={{ flex: 1 }}
-        />
-      ) : (
-        <BaseEmpty />
-      )}
+        {filteredLogs.length > 0 ? (
+          <VirtualList
+            ref={virtuosoRef}
+            count={filteredLogs.length}
+            estimateSize={50}
+            renderItem={(i) => (
+              <LogItem value={filteredLogs[i]} searchState={searchState} />
+            )}
+            onScroll={(event) => {
+              const element = event.currentTarget as HTMLDivElement
+              scrollRef.current.isNearBottom =
+                element.scrollHeight -
+                  element.scrollTop -
+                  element.clientHeight <=
+                20
+            }}
+            style={{ flex: 1 }}
+          />
+        ) : (
+          <BaseEmpty />
+        )}
+      </Box>
     </BasePage>
   )
 }

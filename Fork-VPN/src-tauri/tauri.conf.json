@@ -1,9 +1,9 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "bundle": {
     "active": true,
-    "longDescription": "Fork VPN Client",
+    "longDescription": "Fork VPN — 简洁稳定的网络加速客户端",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -14,9 +14,9 @@
     "resources": ["resources"],
     "publisher": "Fork",
     "externalBin": ["sidecar/verge-mihomo", "sidecar/verge-mihomo-alpha"],
-    "copyright": "GNU General Public License v3.0",
-    "category": "DeveloperTool",
-    "shortDescription": "Fork",
+    "copyright": "Copyright © Fork. All rights reserved.",
+    "category": "Utility",
+    "shortDescription": "Fork VPN",
     "createUpdaterArtifacts": true
   },
   "build": {
@@ -26,7 +26,7 @@
     "devUrl": "http://localhost:3000/",
     "removeUnusedCommands": true
   },
-  "productName": "Fork",
+  "productName": "Fork VPN",
   "identifier": "com.fork.client",
   "plugins": {
     "updater": {

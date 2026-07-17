@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react'
 
+import { useProfiles } from '@/hooks/use-profiles'
 import { useVerge } from '@/hooks/use-verge'
 import delayManager from '@/services/delay'
+import {
+  getDisabledKeysForGroup,
+  proxyConfigHash,
+  subscribeDisabledProxies,
+} from '@/services/disabled-proxies'
 import { compileStringMatcher } from '@/utils/search-matcher'
 
 // default | delay | alphabet
@@ -13,14 +19,23 @@ export type ProxySearchState = {
   useRegularExpression?: boolean
 }
 
+interface UseFilterSortOptions {
+  /** 是否过滤掉禁用节点（默认 false，保留旧行为：禁用项仍可见、排到末尾）。 */
+  filterDisabled?: boolean
+}
+
 export default function useFilterSort(
   proxies: IProxyItem[],
   groupName: string,
   filterText: string,
   sortType: ProxySortType,
   searchState?: ProxySearchState,
+  options?: UseFilterSortOptions,
 ) {
   const { verge } = useVerge()
+  const { current } = useProfiles()
+  const profileUid = current?.uid ?? ''
+  const filterDisabled = options?.filterDisabled ?? false
   const [_, bumpRefresh] = useReducer((count: number) => count + 1, 0)
   const lastInputRef = useRef<{ text: string; sort: ProxySortType } | null>(
     null,
@@ -39,12 +54,19 @@ export default function useFilterSort(
       }
     })
 
+    const unsub = subscribeDisabledProxies(() => bumpRefresh())
+
     return () => {
       delayManager.removeGroupListener(groupName)
+      unsub()
     }
   }, [groupName])
 
   const compute = useMemo(() => {
+    // 引用 _ 以维持依赖：禁用列表变更时 bumpRefresh 递增 _，
+    // 触发本 useMemo 重算（读最新 getDisabledKeysForGroup）。
+    void _
+    const disabledKeys = getDisabledKeysForGroup(profileUid, groupName)
     const fp = filterProxies(proxies, groupName, filterText, searchState)
     const sp = sortProxies(
       fp,
@@ -52,7 +74,15 @@ export default function useFilterSort(
       sortType,
       verge?.default_latency_timeout,
     )
-    return sp
+    if (!disabledKeys.size) return sp
+    if (filterDisabled) {
+      // 过滤掉禁用节点（供紧凑列布局等需要隐藏的场景）
+      return sp.filter((p) => !disabledKeys.has(proxyConfigHash(p)))
+    }
+    // 旧行为：禁用项仍可见，但排到末尾，便于用户右键重新启用
+    const enabled = sp.filter((p) => !disabledKeys.has(proxyConfigHash(p)))
+    const off = sp.filter((p) => disabledKeys.has(proxyConfigHash(p)))
+    return [...enabled, ...off]
   }, [
     proxies,
     groupName,
@@ -60,6 +90,11 @@ export default function useFilterSort(
     sortType,
     searchState,
     verge?.default_latency_timeout,
+    profileUid,
+    filterDisabled,
+    // _ 是 render trigger：禁用列表变更时 bumpRefresh 递增 _，从而让
+    // useMemo 重算。bumpRefresh 本身是稳定 dispatch，无法作为依赖。
+    _,
   ])
 
   const [result, setResult] = useReducer(
@@ -103,9 +138,20 @@ export function filterSort(
   sortType: ProxySortType,
   latencyTimeout?: number,
   searchState?: ProxySearchState,
+  options?: {
+    profileUid?: string
+    filterDisabled?: boolean
+  },
 ) {
   const fp = filterProxies(proxies, groupName, filterText, searchState)
-  const sp = sortProxies(fp, groupName, sortType, latencyTimeout)
+  let sp = sortProxies(fp, groupName, sortType, latencyTimeout)
+  const profileUid = options?.profileUid
+  if (profileUid && options?.filterDisabled) {
+    const disabledKeys = getDisabledKeysForGroup(profileUid, groupName)
+    if (disabledKeys.size) {
+      sp = sp.filter((p) => !disabledKeys.has(proxyConfigHash(p)))
+    }
+  }
   return sp
 }
 

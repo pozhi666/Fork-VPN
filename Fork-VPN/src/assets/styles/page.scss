@@ -4,9 +4,8 @@
   display: flex;
   flex-direction: column;
   > header {
-    flex: 0 0 58px;
+    flex: 0 0 52px;
     width: 100%;
-    // max-width: 850px;
     margin: 0 auto;
     padding: 0 20px;
     box-sizing: border-box;
@@ -14,13 +13,12 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--divider-color);
+    background: transparent;
   }
 
   .base-container {
     height: 100%;
     overflow: hidden;
-    // border-radius: 10px;
-    // border-top-left-radius: var(--border-radius);
 
     > section {
       position: relative;
@@ -28,11 +26,12 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      padding: 10px 0;
+      padding: 14px 0 20px;
       box-sizing: border-box;
       scrollbar-gutter: stable;
       .base-content {
-        width: calc(100% - 10px * 2);
+        width: calc(100% - 24px);
+        max-width: 1200px;
         margin: 0 auto;
       }
     }

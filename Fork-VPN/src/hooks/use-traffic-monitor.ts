@@ -10,6 +10,7 @@ import { Traffic } from 'tauri-plugin-mihomo-api'
 
 import { useVisibility } from '@/hooks/use-visibility'
 import { debugLog } from '@/utils/debug'
+import { accumulateTrafficBytes } from '@/services/commercial'
 import { TrafficDataSampler, formatTrafficName } from '@/utils/traffic-sampler'
 
 // 引用计数管理器
@@ -425,6 +426,12 @@ export const useTrafficMonitorEnhanced = (options?: {
   const appendData = useCallback(
     (traffic: Traffic) => {
       if (!enabled) return
+      // commercial traffic quota: integrate bps → bytes (≈1s sample)
+      try {
+        accumulateTrafficBytes(traffic?.up ?? 0, traffic?.down ?? 0, 1)
+      } catch {
+        /* ignore */
+      }
       clientRef.current?.appendData(traffic)
     },
     [enabled],

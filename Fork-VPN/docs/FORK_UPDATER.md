@@ -8,7 +8,7 @@
 原版公钥无法用来签你们自己的包。生成 Fork 专用密钥：
 
 ```bash
-cd clash-verge-rev-dev
+cd Fork-VPN
 pnpm tauri signer generate -w ~/.tauri/fork.key
 ```
 

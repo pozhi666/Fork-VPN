@@ -3,7 +3,6 @@ import type {
   DraggableSyntheticListeners,
 } from '@dnd-kit/core'
 import {
-  alpha,
   ListItem,
   ListItemButton,
   ListItemIcon,
@@ -31,6 +30,7 @@ interface Props {
   sortable?: SortableProps
   onPreload?: () => Promise<unknown>
 }
+
 export const LayoutItem = (props: Props) => {
   const { to, children, icon, sortable, onPreload } = props
   const { verge } = useVerge()
@@ -42,6 +42,12 @@ export const LayoutItem = (props: Props) => {
 
   const effectiveMenuIcon =
     navCollapsed && menu_icon === 'disable' ? 'monochrome' : menu_icon
+  const showIcon =
+    effectiveMenuIcon === 'monochrome' ||
+    !effectiveMenuIcon ||
+    effectiveMenuIcon === 'colorful'
+  const showText = !navCollapsed
+  const iconOnly = navCollapsed
 
   const { setNodeRef, attributes, listeners, style, isDragging, disabled } =
     sortable ?? {}
@@ -67,9 +73,10 @@ export const LayoutItem = (props: Props) => {
     <ListItem
       ref={setNodeRef}
       style={style}
+      disablePadding
       sx={[
-        { py: 0.5, maxWidth: 250, mx: 'auto', padding: '4px 0px' },
-        isDragging ? { opacity: 0.78 } : {},
+        { width: '100%', px: 1, py: 0.25 },
+        isDragging ? { opacity: 0.75 } : {},
       ]}
     >
       <ListItemButton
@@ -78,61 +85,84 @@ export const LayoutItem = (props: Props) => {
         {...(draggable ? otherListeners : {})}
         sx={[
           {
-            borderRadius: 2,
-            marginLeft: 1.25,
-            paddingLeft: 1,
-            paddingRight: 1,
-            marginRight: 1.25,
+            borderRadius: '8px',
+            minHeight: 38,
+            px: iconOnly ? 1 : 1.15,
+            py: 0.65,
+            gap: 1.1,
+            justifyContent: iconOnly ? 'center' : 'flex-start',
             cursor: draggable ? 'grab' : 'pointer',
+            color: 'rgba(229, 231, 235, 0.58)',
+            transition: 'background .12s ease, color .12s ease',
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.045)',
+              color: 'rgba(249, 250, 251, 0.92)',
+            },
             '&:active': draggable ? { cursor: 'grabbing' } : {},
+            '& .MuiListItemIcon-root': {
+              minWidth: 20,
+              width: 20,
+              height: 20,
+              margin: 0,
+              color: 'inherit',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '& svg': { fontSize: 18, width: 18, height: 18 },
+            },
+            '& .MuiListItemText-root': {
+              m: 0,
+              minWidth: 0,
+            },
             '& .MuiListItemText-primary': {
-              color: 'text.primary',
-              fontWeight: '700',
+              color: 'inherit',
+              fontSize: 13,
+              fontWeight: 500,
+              letterSpacing: 0,
+              lineHeight: 1.3,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             },
           },
-          ({ palette: { mode, primary } }) => {
-            const bgcolor =
-              mode === 'light'
-                ? alpha(primary.main, 0.15)
-                : alpha(primary.main, 0.35)
-            const color = mode === 'light' ? '#1f1f1f' : '#ffffff'
-            return {
-              '&.Mui-selected': { bgcolor },
-              '&.Mui-selected:hover': { bgcolor },
-              '&.Mui-selected .MuiListItemText-primary': { color },
-            }
-          },
+          () => ({
+            '&.Mui-selected': {
+              color: '#F9FAFB',
+              bgcolor: 'rgba(255, 255, 255, 0.08)',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+              '& .MuiListItemText-primary': {
+                fontWeight: 600,
+                color: '#F9FAFB',
+              },
+              '& .MuiListItemIcon-root': {
+                color: '#2DD4BF',
+              },
+            },
+          }),
         ]}
-        title={navCollapsed ? children : undefined}
-        aria-label={navCollapsed ? children : undefined}
+        title={children}
+        aria-label={children}
         onFocus={handlePreload}
         onMouseEnter={handlePreload}
         onPointerDown={handlePointerDown}
         onClick={() => navigate(to)}
       >
-        {(effectiveMenuIcon === 'monochrome' || !effectiveMenuIcon) && (
-          <ListItemIcon
-            sx={{
-              color: 'text.primary',
-              marginLeft: '6px',
-              cursor: draggable ? 'grab' : 'inherit',
-            }}
-          >
-            {icon[0]}
+        {showIcon && (
+          <ListItemIcon>
+            {effectiveMenuIcon === 'colorful' ? icon[1] : icon[0]}
           </ListItemIcon>
         )}
-        {effectiveMenuIcon === 'colorful' && (
-          <ListItemIcon sx={{ cursor: draggable ? 'grab' : 'inherit' }}>
-            {icon[1]}
-          </ListItemIcon>
+        {showText && effectiveMenuIcon !== 'disable' && (
+          <ListItemText primary={children} />
         )}
-        <ListItemText
-          sx={{
-            textAlign: 'center',
-            marginLeft: effectiveMenuIcon === 'disable' ? '' : '-35px',
-          }}
-          primary={children}
-        />
+        {showText && effectiveMenuIcon === 'disable' && (
+          <ListItemText
+            primary={children}
+            sx={{ textAlign: 'center', width: '100%' }}
+          />
+        )}
       </ListItemButton>
     </ListItem>
   )

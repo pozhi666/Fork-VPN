@@ -3,8 +3,10 @@ import { alpha, Box, ListItemButton, styled, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { BaseLoading } from '@/components/base'
+import { useDisabledProxiesCurrentProfile } from '@/hooks/use-disabled-proxies'
 import { useProxyDelayState } from '@/hooks/use-proxy-delay-state'
 import delayManager from '@/services/delay'
+import { showNotice } from '@/services/notice-service'
 
 interface Props {
   group: IProxyGroupItem
@@ -19,6 +21,8 @@ export const ProxyItemMini = (props: Props) => {
   const { group, proxy, selected, showType = true, onClick } = props
 
   const { t } = useTranslation()
+  const { isDisabled } = useDisabledProxiesCurrentProfile(group.name)
+  const disabled = isDisabled(proxy)
 
   // -1/<=0 为不显示，-2 为 loading
   const { delayValue, isPreset, timeout, onDelay } = useProxyDelayState(
@@ -29,23 +33,39 @@ export const ProxyItemMini = (props: Props) => {
   return (
     <ListItemButton
       dense
-      selected={selected}
-      onClick={() => onClick?.(proxy.name)}
+      selected={selected && !disabled}
+      onClick={() => {
+        if (disabled) {
+          showNotice.info('节点已禁用')
+          return
+        }
+        onClick?.(proxy.name)
+      }}
       sx={[
         {
-          height: 56,
-          borderRadius: 1.5,
+          height: 54,
+          borderRadius: '8px',
           pl: 1.5,
           pr: 1,
           justifyContent: 'space-between',
           alignItems: 'center',
+          opacity: disabled ? 0.45 : 1,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          border: 'none',
+          transition: 'background .12s ease',
         },
         ({ palette: { mode, primary } }) => {
-          const bgcolor = mode === 'light' ? '#ffffff' : '#24252f'
+          const bgcolor =
+            mode === 'light' ? 'rgba(255,255,255,0.9)' : 'rgba(20,24,31,0.9)'
           const showDelay = delayValue > 0
-          const selectColor = mode === 'light' ? primary.main : primary.light
 
           return {
+            '&:hover': {
+              bgcolor:
+                mode === 'light'
+                  ? alpha(primary.main, 0.06)
+                  : 'rgba(255,255,255,0.06)',
+            },
             '&:hover .the-check': { display: !showDelay ? 'block' : 'none' },
             '&:hover .the-delay': { display: showDelay ? 'block' : 'none' },
             '&:hover .the-icon': { display: 'none' },
@@ -57,13 +77,10 @@ export const ProxyItemMini = (props: Props) => {
             },
             '& .the-unpin': { filter: 'grayscale(1)' },
             '&.Mui-selected': {
-              width: `calc(100% + 3px)`,
-              marginLeft: `-3px`,
-              borderLeft: `3px solid ${selectColor}`,
               bgcolor:
                 mode === 'light'
-                  ? alpha(primary.main, 0.15)
-                  : alpha(primary.main, 0.35),
+                  ? alpha(primary.main, 0.1)
+                  : alpha(primary.main, 0.14),
             },
             backgroundColor: bgcolor,
           }
@@ -87,6 +104,15 @@ export const ProxyItemMini = (props: Props) => {
           }}
         >
           {proxy.name}
+          {disabled && (
+            <TypeBox
+              color="text.secondary"
+              component="span"
+              sx={{ ml: 0.5, verticalAlign: 'middle' }}
+            >
+              已禁用
+            </TypeBox>
+          )}
         </Typography>
 
         {showType && (

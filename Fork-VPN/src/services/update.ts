@@ -6,6 +6,17 @@ import {
 
 import { version as appVersion } from '@root/package.json'
 
+/** Reject foreign-channel updates (e.g. Clash Verge 2.x on Fork 0.x). */
+function isPlausibleForkUpdate(current: string, target: string): boolean {
+  const parseMajor = (v: string) => {
+    const n = Number.parseInt(String(v).replace(/^v/i, '').split('.')[0] || '0', 10)
+    return Number.isFinite(n) ? n : 0
+  }
+  const cm = parseMajor(current)
+  const tm = parseMajor(target)
+  return tm <= cm + 1
+}
+
 export type VersionParts = {
   main: number[]
   pre: (number | string)[]
@@ -134,7 +145,8 @@ const localVersionNormalized = normalizeVersion(appVersion)
 export const checkUpdateSafe = async (
   options?: CheckOptions,
 ): Promise<Update | null> => {
-  // Endpoints in tauri.conf point at Fork backend latest.json (not upstream).
+  // Endpoints in tauri.conf / webview2.* must point at Fork backend only
+  // (never clash-verge-rev GitHub updater).
   const result = await check({ ...(options ?? {}), allowDowngrades: false })
   if (!result) return null
 
@@ -146,6 +158,23 @@ export const checkUpdateSafe = async (
       await result.close()
     } catch (err) {
       console.warn('[updater] failed to close stale update resource', err)
+    }
+    return null
+  }
+
+  // Guard against foreign-channel pollution (Clash Verge 2.x vs Fork 0.x)
+  if (
+    remoteVersion &&
+    localVersionNormalized &&
+    !isPlausibleForkUpdate(localVersionNormalized, remoteVersion)
+  ) {
+    console.warn(
+      `[updater] ignoring implausible update ${remoteVersion} (local ${localVersionNormalized})`,
+    )
+    try {
+      await result.close()
+    } catch {
+      /* ignore */
     }
     return null
   }

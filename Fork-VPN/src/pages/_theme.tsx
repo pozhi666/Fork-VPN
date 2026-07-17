@@ -1,32 +1,36 @@
 import getSystem from '@/utils/get-system'
+import { FORK_BRAND } from '@/config/brand'
+
 const OS = getSystem()
 
-// default theme setting
+const font = `-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif${
+  OS === 'windows' ? ', twemoji mozilla' : ''
+}`
+
+/** Fork light — slate + teal (not Clash blue/purple) */
 export const defaultTheme = {
-  primary_color: '#007AFF',
-  secondary_color: '#FC9B76',
-  primary_text: '#000000',
-  secondary_text: '#3C3C4399',
-  info_color: '#007AFF',
-  error_color: '#FF3B30',
-  warning_color: '#FF9500',
-  success_color: '#06943D',
-  background_color: '#F5F5F5',
-  font_family: `-apple-system, BlinkMacSystemFont,"Microsoft YaHei UI", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji"${
-    OS === 'windows' ? ', twemoji mozilla' : ''
-  }`,
+  primary_color: FORK_BRAND.light.primary,
+  secondary_color: FORK_BRAND.light.secondary,
+  primary_text: FORK_BRAND.light.text,
+  secondary_text: FORK_BRAND.light.textMuted,
+  info_color: '#0EA5E9',
+  error_color: '#EF4444',
+  warning_color: '#F59E0B',
+  success_color: '#10B981',
+  background_color: FORK_BRAND.light.bg,
+  font_family: font,
 }
 
-// dark mode
+/** Fork dark — ink navy + teal glow */
 export const defaultDarkTheme = {
   ...defaultTheme,
-  primary_color: '#0A84FF',
-  secondary_color: '#FF9F0A',
-  primary_text: '#FFFFFF',
-  background_color: '#2E303D',
-  secondary_text: '#EBEBF599',
-  info_color: '#0A84FF',
-  error_color: '#FF453A',
-  warning_color: '#FF9F0A',
-  success_color: '#30D158',
+  primary_color: FORK_BRAND.dark.primary,
+  secondary_color: FORK_BRAND.dark.secondary,
+  primary_text: FORK_BRAND.dark.text,
+  secondary_text: FORK_BRAND.dark.textMuted,
+  background_color: FORK_BRAND.dark.paper,
+  info_color: '#38BDF8',
+  error_color: '#F87171',
+  warning_color: '#FBBF24',
+  success_color: '#34D399',
 }

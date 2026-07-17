@@ -157,11 +157,15 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: { xs: '100%', sm: 400 },
-            bgcolor: 'background.paper',
-            backgroundImage: 'none',
+        slotProps={{
+          paper: {
+            sx: (t) => ({
+              width: { xs: '100%', sm: 400 },
+              bgcolor:
+                t.palette.mode === 'dark' ? '#1a1f28' : t.palette.background.paper,
+              backgroundImage: 'none',
+              color: 'text.primary',
+            }),
           },
         }}
       >
@@ -178,7 +182,7 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         >
           <CampaignRounded color="primary" />
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography fontWeight={700}>公告中心</Typography>
+            <Typography sx={{ fontWeight: 700 }}>公告中心</Typography>
             <Typography variant="caption" color="text.secondary">
               {unread > 0 ? `${unread} 条未读` : '全部已读'}
               {items.length ? ` · 共 ${items.length} 条` : ''}
@@ -246,10 +250,13 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
                     />
                     <ListItemText
                       primary={
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ display: 'flex', alignItems: 'center' }}
+                        >
                           <Typography
-                            fontWeight={unreadItem ? 700 : 500}
-                            sx={{ flex: 1, minWidth: 0 }}
+                            sx={{ flex: 1, minWidth: 0, fontWeight: unreadItem ? 700 : 500 }}
                             noWrap
                           >
                             {item.title}
@@ -282,7 +289,9 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
                           </Typography>
                         </Box>
                       }
-                      secondaryTypographyProps={{ component: 'div' }}
+                      slotProps={{
+                        secondary: { component: 'div' },
+                      }}
                     />
                   </ListItemButton>
                 </Box>
@@ -297,14 +306,22 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         onClose={() => setDetailOpen(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2 } }}
+        slotProps={{
+          paper: {
+            sx: (t) => ({
+              borderRadius: 2,
+              bgcolor:
+                t.palette.mode === 'dark' ? '#1a1f28' : t.palette.background.paper,
+            }),
+          },
+        }}
       >
         <DialogTitle sx={{ pr: 6 }}>
-          <Typography component="span" fontWeight={700} variant="h6">
+          <Typography component="span" variant="h6" sx={{ fontWeight: 700 }}>
             {active?.title}
           </Typography>
           {active?.created_at ? (
-            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
               {formatAnnTime(active.created_at)} ·{' '}
               {new Date((active.created_at || 0) * 1000).toLocaleString()}
             </Typography>
@@ -320,7 +337,12 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         <DialogContent dividers>
           <Typography
             variant="body1"
-            sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.7, color: 'text.primary' }}
+            sx={{
+              whiteSpace: 'pre-wrap',
+              lineHeight: 1.75,
+              color: 'text.primary',
+              fontSize: 15,
+            }}
           >
             {active?.body || '（无正文内容）'}
           </Typography>
@@ -400,41 +422,56 @@ function AnnouncementBannerInner() {
 
   if (!items.length) return null
 
+  const isDark = theme.palette.mode === 'dark'
+
   return (
     <Box
       onClick={openCenter}
       sx={{
         mb: 2,
         p: 1.75,
-        borderRadius: 2,
+        borderRadius: '12px',
         cursor: 'pointer',
         border: '1px solid',
         borderColor: unread
-          ? alpha(theme.palette.primary.main, 0.35)
-          : 'divider',
-        background: unread
-          ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.12)}, ${alpha(
-              theme.palette.primary.main,
-              0.04,
-            )})`
-          : alpha(theme.palette.action.hover, 0.4),
-        transition: '0.15s ease',
+          ? alpha(theme.palette.primary.main, isDark ? 0.45 : 0.35)
+          : isDark
+            ? 'rgba(255,255,255,0.1)'
+            : 'rgba(17,24,39,0.08)',
+        // Brighter surface so announcements don't disappear into dark UI
+        bgcolor: isDark
+          ? unread
+            ? alpha(theme.palette.primary.main, 0.18)
+            : 'rgba(255,255,255,0.08)'
+          : unread
+            ? alpha(theme.palette.primary.main, 0.1)
+            : '#FFFFFF',
+        boxShadow: isDark
+          ? 'none'
+          : '0 1px 3px rgba(17,24,39,0.06)',
+        transition: 'background .12s ease, border-color .12s ease',
         '&:hover': {
-          borderColor: 'primary.main',
-          boxShadow: 1,
+          borderColor: alpha(theme.palette.primary.main, 0.55),
+          bgcolor: isDark
+            ? alpha(theme.palette.primary.main, 0.22)
+            : alpha(theme.palette.primary.main, 0.08),
         },
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="flex-start">
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ display: 'flex', alignItems: 'flex-start' }}
+      >
         <Box
           sx={{
-            width: 32,
-            height: 32,
-            borderRadius: 1.5,
+            width: 34,
+            height: 34,
+            borderRadius: '10px',
             display: 'grid',
             placeItems: 'center',
-            bgcolor: alpha(theme.palette.primary.main, 0.15),
-            color: 'primary.main',
+            bgcolor: alpha(theme.palette.primary.main, isDark ? 0.28 : 0.14),
+            color: isDark ? '#5EEAD4' : 'primary.main',
             flexShrink: 0,
             '& svg': { fontSize: 18, width: 18, height: 18 },
           }}
@@ -442,8 +479,20 @@ function AnnouncementBannerInner() {
           <NotificationsNoneRounded />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
-            <Typography variant="subtitle2" fontWeight={700} noWrap sx={{ flex: 1 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ display: 'flex', alignItems: 'center', mb: 0.25 }}
+          >
+            <Typography
+              variant="subtitle2"
+              noWrap
+              sx={{
+                flex: 1,
+                fontWeight: 700,
+                color: 'text.primary',
+              }}
+            >
               {top?.title || '公告'}
             </Typography>
             {unread > 0 ? (
@@ -454,13 +503,18 @@ function AnnouncementBannerInner() {
           </Stack>
           <Typography
             variant="body2"
-            color="text.secondary"
             noWrap
-            sx={{ mb: 0.5 }}
+            sx={{
+              mb: 0.5,
+              color: isDark ? 'rgba(243,244,246,0.78)' : 'text.secondary',
+            }}
           >
             {top?.body || '点击查看公告中心'}
           </Typography>
-          <Typography variant="caption" color="text.disabled">
+          <Typography
+            variant="caption"
+            sx={{ color: isDark ? 'rgba(156,163,175,0.95)' : 'text.disabled' }}
+          >
             {formatAnnTime(top?.created_at)} · 点击打开公告中心
           </Typography>
         </Box>

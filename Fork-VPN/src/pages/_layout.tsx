@@ -12,14 +12,16 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { LogoutRounded } from '@mui/icons-material'
 import {
   Box,
-  Button,
+  IconButton,
   List,
   Menu,
   MenuItem,
   Paper,
   ThemeProvider,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import dayjs from 'dayjs'
@@ -37,13 +39,11 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 
-import logoPng from '@/assets/image/logo.png'
 import { PRODUCT_NAME } from '@/config/commercial'
 import { BaseErrorBoundary } from '@/components/base'
 import { LayoutItem } from '@/components/layout/layout-item'
 import { LayoutTraffic } from '@/components/layout/layout-traffic'
 import { AnnouncementBellButton } from '@/components/home/announcement-center'
-import { ForceUpdateDialog } from '@/components/layout/force-update-dialog'
 import { NoticeManager } from '@/components/layout/notice-manager'
 import { UpdateButton } from '@/components/layout/update-button'
 import {
@@ -293,12 +293,12 @@ const Layout = () => {
         style={{
           width: '100vw',
           height: '100vh',
-          background: mode === 'light' ? '#fff' : '#181a1b',
+          background: mode === 'light' ? '#f1f5f9' : '#070b14',
           transition: 'background 0.2s',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: mode === 'light' ? '#333' : '#fff',
+          color: mode === 'light' ? '#0f172a' : '#f8fafc',
         }}
       ></div>
     )
@@ -310,8 +310,6 @@ const Layout = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      {/* 左侧底部窗口控制按钮 */}
-      <ForceUpdateDialog />
       <NoticeManager position={verge?.notice_position} />
       <div
         style={{
@@ -365,40 +363,50 @@ const Layout = () => {
         <div className="layout-content">
           <div className="layout-content__left">
             <div className="the-logo" data-tauri-drag-region="false">
-              <div
+              <Box
                 data-tauri-drag-region="true"
-                style={{
-                  height: '27px',
+                sx={{
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 1.25,
+                  minWidth: 0,
+                  pr: 5,
                 }}
               >
                 <Box
-                  component="img"
-                  src={logoPng}
-                  alt={PRODUCT_NAME}
                   sx={{
-                    height: 36,
-                    width: 36,
-                    marginTop: '-3px',
-                    marginRight: '8px',
-                    marginLeft: '-3px',
+                    height: 28,
+                    width: 28,
                     borderRadius: '8px',
-                    objectFit: 'cover',
-                  }}
-                />
-                <Box
-                  component="span"
-                  sx={{
+                    display: 'grid',
+                    placeItems: 'center',
                     fontWeight: 700,
-                    fontSize: 18,
-                    letterSpacing: 0.3,
-                    lineHeight: '36px',
+                    fontSize: 13,
+                    color: '#042f2e',
+                    background: '#2DD4BF',
+                    flexShrink: 0,
                   }}
                 >
-                  {PRODUCT_NAME}
+                  F
                 </Box>
-              </div>
+                {!navCollapsed && (
+                  <Box sx={{ minWidth: 0 }}>
+                    <Box
+                      component="span"
+                      sx={{
+                        display: 'block',
+                        fontWeight: 600,
+                        fontSize: 14,
+                        letterSpacing: -0.1,
+                        lineHeight: 1.25,
+                        color: '#F3F4F6',
+                      }}
+                    >
+                      {PRODUCT_NAME}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
               <AnnouncementBellButton className="the-ann-btn" />
               <UpdateButton className="the-newbtn" />
             </div>
@@ -516,41 +524,105 @@ const Layout = () => {
             </Menu>
 
             {commercialEnabled && session ? (
-              <Box
-                sx={{
-                  px: 1.5,
-                  py: 1,
-                  mx: 1,
-                  mb: 1,
-                  borderRadius: 1.5,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === 'light'
-                      ? 'rgba(0,0,0,0.04)'
-                      : 'rgba(255,255,255,0.06)',
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  noWrap
-                  sx={{ display: 'block' }}
-                >
-                  {session.username} · {session.plan}
-                </Typography>
-                <Button
-                  size="small"
-                  color="inherit"
-                  fullWidth
-                  sx={{ mt: 0.5, textTransform: 'none' }}
-                  onClick={() => {
-                    void logout().then(() =>
-                      navigate('/login', { replace: true }),
-                    )
+              <div className="the-account">
+                <Box
+                  onClick={() => navigate('/account')}
+                  title={
+                    navCollapsed
+                      ? `${session.username} · ${session.plan || '账户'}`
+                      : '打开个人中心'
+                  }
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    mx: navCollapsed ? 0.5 : 1,
+                    mb: 0.25,
+                    px: navCollapsed ? 0.75 : 1,
+                    py: 0.75,
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'background .12s ease',
+                    justifyContent: navCollapsed ? 'center' : 'flex-start',
+                    '&:hover': {
+                      bgcolor: 'rgba(255,255,255,0.04)',
+                    },
                   }}
                 >
-                  退出登录
-                </Button>
-              </Box>
+                  <Box
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      flexShrink: 0,
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontWeight: 600,
+                      fontSize: 12,
+                      color: '#9CA3AF',
+                      background: 'rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    {(session.username || '?').trim().charAt(0).toUpperCase() ||
+                      '?'}
+                  </Box>
+
+                  {!navCollapsed && (
+                    <>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography
+                          noWrap
+                          sx={{
+                            fontSize: 12.5,
+                            fontWeight: 500,
+                            lineHeight: 1.25,
+                            color: 'rgba(243,244,246,0.92)',
+                          }}
+                        >
+                          {session.username}
+                        </Typography>
+                        <Typography
+                          noWrap
+                          sx={{
+                            mt: 0.15,
+                            fontSize: 11,
+                            fontWeight: 500,
+                            lineHeight: 1.2,
+                            color: 'rgba(156,163,175,0.9)',
+                          }}
+                        >
+                          {session.plan || '免费套餐'}
+                        </Typography>
+                      </Box>
+                      <Tooltip title="退出登录" placement="top">
+                        <IconButton
+                          size="small"
+                          aria-label="退出登录"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            void logout().then(() =>
+                              navigate('/login', { replace: true }),
+                            )
+                          }}
+                          sx={{
+                            width: 26,
+                            height: 26,
+                            flexShrink: 0,
+                            color: 'rgba(156,163,175,0.75)',
+                            borderRadius: '6px',
+                            '&:hover': {
+                              color: '#FCA5A5',
+                              bgcolor: 'rgba(248,113,113,0.1)',
+                            },
+                          }}
+                        >
+                          <LogoutRounded sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                </Box>
+              </div>
             ) : null}
 
             <div className="the-traffic">

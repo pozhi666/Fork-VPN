@@ -12,9 +12,11 @@
         "silent": true
       },
       "nsis": {
-        "displayLanguageSelector": true,
+        "displayLanguageSelector": false,
         "installerIcon": "icons/icon.ico",
-        "languages": ["SimpChinese", "English", "Russian"],
+        "headerImage": "icons/installer/nsis-header.bmp",
+        "sidebarImage": "icons/installer/nsis-sidebar.bmp",
+        "languages": ["SimpChinese", "English"],
         "installMode": "perMachine",
         "template": "./packages/windows/installer.nsi"
       }

@@ -17,14 +17,16 @@ interface Props {
 const tagStyle = {
   boxSizing: 'border-box',
   maxWidth: '100%',
-  padding: '0 4px',
-  border: '1px solid rgba(128,128,128,0.35)',
-  borderRadius: 4,
+  padding: '1px 6px',
+  border: '1px solid rgba(128,128,128,0.22)',
+  borderRadius: 6,
   fontSize: 10,
+  fontWeight: 600,
   lineHeight: 1.375,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+  opacity: 0.9,
 } as const
 
 const itemStyle = {
@@ -33,7 +35,7 @@ const itemStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: 8,
-  padding: '6px 48px 6px 12px',
+  padding: '8px 48px 8px 14px',
   borderBottom: '1px solid var(--divider-color)',
   position: 'relative',
   overflow: 'hidden',

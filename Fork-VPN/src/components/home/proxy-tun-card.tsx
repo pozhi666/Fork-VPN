@@ -8,7 +8,6 @@ import {
   Box,
   Typography,
   Stack,
-  Paper,
   Tooltip,
   alpha,
   useTheme,
@@ -36,60 +35,59 @@ interface TabButtonProps {
 // Tab组件
 const TabButton: FC<TabButtonProps> = memo(
   ({ isActive, onClick, icon: Icon, label, hasIndicator = false }) => (
-    <Paper
-      elevation={isActive ? 2 : 0}
+    <Box
       onClick={onClick}
-      sx={{
+      sx={(theme) => ({
         cursor: 'pointer',
-        px: 2,
-        py: 1,
+        px: 1.5,
+        py: 0.95,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 1,
-        bgcolor: isActive ? 'primary.main' : 'background.paper',
-        color: isActive ? 'primary.contrastText' : 'text.primary',
-        borderRadius: 1.5,
+        gap: 0.65,
         flex: 1,
         maxWidth: 160,
-        transition: 'all 0.2s ease-in-out',
         position: 'relative',
+        borderRadius: '8px',
+        border: 'none',
+        bgcolor: isActive
+          ? alpha(
+              theme.palette.primary.main,
+              theme.palette.mode === 'dark' ? 0.16 : 0.1,
+            )
+          : theme.palette.mode === 'dark'
+            ? 'rgba(255,255,255,0.04)'
+            : 'rgba(17,24,39,0.04)',
+        color: isActive ? 'primary.main' : 'text.secondary',
+        transition: 'background .12s ease, color .12s ease',
         '&:hover': {
-          transform: 'translateY(-1px)',
-          boxShadow: 1,
+          bgcolor: isActive
+            ? alpha(theme.palette.primary.main, 0.2)
+            : theme.palette.mode === 'dark'
+              ? 'rgba(255,255,255,0.06)'
+              : 'rgba(17,24,39,0.06)',
+          color: isActive ? 'primary.main' : 'text.primary',
         },
-        '&:after': isActive
-          ? {
-              content: '""',
-              position: 'absolute',
-              bottom: -9,
-              left: '50%',
-              width: 2,
-              height: 9,
-              bgcolor: 'primary.main',
-              transform: 'translateX(-50%)',
-            }
-          : {},
-      }}
+      })}
     >
       <Icon fontSize="small" />
-      <Typography variant="body2" sx={{ fontWeight: isActive ? 600 : 400 }}>
+      <Typography variant="body2" sx={{ fontWeight: isActive ? 700 : 500, fontSize: 13 }}>
         {label}
       </Typography>
       {hasIndicator && (
         <Box
           sx={{
-            width: 8,
-            height: 8,
+            width: 7,
+            height: 7,
             borderRadius: '50%',
-            bgcolor: isActive ? '#fff' : 'success.main',
+            bgcolor: isActive ? 'primary.main' : 'success.main',
             position: 'absolute',
             top: 8,
             right: 8,
           }}
         />
       )}
-    </Paper>
+    </Box>
   ),
 )
 
@@ -98,30 +96,32 @@ interface TabDescriptionProps {
   tooltipTitle: string
 }
 
-// 描述文本组件
+// 描述文本组件 — 与模式卡片 caption 统一
 const TabDescription: FC<TabDescriptionProps> = memo(
   ({ description, tooltipTitle }) => (
     <Fade in={true} timeout={200}>
       <Typography
         variant="caption"
         component="div"
-        sx={{
-          width: '95%',
+        sx={(theme) => ({
+          width: '100%',
           textAlign: 'center',
           color: 'text.secondary',
-          p: 0.8,
-          borderRadius: 1,
-          borderColor: 'primary.main',
-          borderWidth: 1,
-          borderStyle: 'solid',
-          backgroundColor: 'background.paper',
+          px: 1.25,
+          py: 0.85,
+          borderRadius: '8px',
+          bgcolor:
+            theme.palette.mode === 'dark'
+              ? 'rgba(255,255,255,0.03)'
+              : 'rgba(17,24,39,0.03)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 0.5,
           wordBreak: 'break-word',
           hyphens: 'auto',
-        }}
+          lineHeight: 1.5,
+        })}
       >
         {description}
         <Tooltip title={tooltipTitle}>
@@ -183,7 +183,9 @@ export const ProxyTunCard: FC = () => {
   ])
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 1.25 }}
+    >
       <Stack
         direction="row"
         spacing={1}
@@ -210,28 +212,19 @@ export const ProxyTunCard: FC = () => {
         />
       </Stack>
 
-      <Box
-        sx={{
-          width: '100%',
-          my: 1,
-          position: 'relative',
-          display: 'flex',
-          justifyContent: 'center',
-          overflow: 'visible',
-        }}
-      >
-        <TabDescription
-          description={tabDescription.text}
-          tooltipTitle={tabDescription.tooltip}
-        />
-      </Box>
+      <TabDescription
+        description={tabDescription.text}
+        tooltipTitle={tabDescription.tooltip}
+      />
 
       <Box
         sx={{
-          mt: 0,
-          p: 1,
-          bgcolor: alpha(theme.palette.primary.main, 0.04),
-          borderRadius: 2,
+          p: 1.15,
+          borderRadius: '8px',
+          bgcolor:
+            theme.palette.mode === 'dark'
+              ? 'rgba(255,255,255,0.03)'
+              : 'rgba(17,24,39,0.03)',
         }}
       >
         <ProxyControlSwitches

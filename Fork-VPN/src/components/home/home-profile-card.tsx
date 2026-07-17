@@ -10,6 +10,7 @@ import {
 import {
   Box,
   Button,
+  Chip,
   LinearProgress,
   Link,
   Stack,
@@ -20,7 +21,7 @@ import {
 } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import dayjs from 'dayjs'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
@@ -28,10 +29,26 @@ import { COMMERCIAL_MODE, isOfficialProfile } from '@/config/commercial'
 import { useAppRefreshers } from '@/providers/app-data-context'
 import { useAuth } from '@/providers/auth-provider'
 import { openWebUrl, updateProfile } from '@/services/cmds'
+import {
+  commercialGetProfile,
+  setTrafficPoolHint,
+  type TrafficInfo,
+} from '@/services/commercial'
 import { showNotice } from '@/services/notice-service'
 import parseTraffic from '@/utils/parse-traffic'
 
 import { EnhancedCard } from './enhanced-card'
+
+/** Fired after check-in / purchase so home traffic refreshes without full sync */
+export const FORK_ENTITLEMENT_EVENT = 'fork-entitlement-updated'
+
+export function notifyEntitlementUpdated() {
+  try {
+    window.dispatchEvent(new Event(FORK_ENTITLEMENT_EVENT))
+  } catch {
+    /* ignore */
+  }
+}
 
 // 定义旋转动画
 const round = keyframes`
@@ -82,24 +99,55 @@ const ProfileDetails = ({
   current,
   onUpdateProfile,
   updating,
+  commercialTraffic,
+  commercialExpire,
+  commercialBalanceYuan,
 }: {
   current: ProfileItem
   onUpdateProfile: () => void
   updating: boolean
+  /** Backend account quota (check-in / purchases) — preferred over profile.extra for official */
+  commercialTraffic?: TrafficInfo | null
+  commercialExpire?: number | null
+  commercialBalanceYuan?: string | null
 }) => {
   const { t } = useTranslation()
   const theme = useTheme()
+  const navigate = useNavigate()
+  const { session } = useAuth()
 
+  // Prefer live backend traffic for commercial official profile (survives check-in without re-sync)
   const usedTraffic = useMemo(() => {
+    if (commercialTraffic && !commercialTraffic.unlimited) {
+      return Number(commercialTraffic.used_bytes || 0)
+    }
+    if (commercialTraffic?.unlimited) {
+      return Number(commercialTraffic.used_bytes || 0)
+    }
     if (!current.extra) return 0
     return current.extra.upload + current.extra.download
-  }, [current.extra])
+  }, [current.extra, commercialTraffic])
+
+  const totalTraffic = useMemo(() => {
+    if (commercialTraffic) {
+      if (commercialTraffic.unlimited) return 0 // show as unlimited
+      return Number(commercialTraffic.limit_bytes || 0)
+    }
+    return current.extra?.total || 0
+  }, [current.extra, commercialTraffic])
+
+  const trafficLabel = commercialTraffic?.label
 
   const trafficPercentage = useMemo(() => {
-    if (!current.extra || !current.extra.total || current.extra.total <= 0)
-      return 0
-    return Math.min(Math.round((usedTraffic / current.extra.total) * 100), 100)
-  }, [current.extra, usedTraffic])
+    if (commercialTraffic?.unlimited) return 0
+    if (!totalTraffic || totalTraffic <= 0) return 0
+    return Math.min(Math.round((usedTraffic / totalTraffic) * 100), 100)
+  }, [usedTraffic, totalTraffic, commercialTraffic])
+
+  const expireAt =
+    commercialExpire && commercialExpire > 0
+      ? commercialExpire
+      : current.extra?.expire || 0
 
   return (
     <Box>
@@ -196,49 +244,196 @@ const ProfileDetails = ({
           </Stack>
         )}
 
-        {current.extra && (
+        {COMMERCIAL_MODE && session ? (
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              账户余额：{' '}
+              <Box
+                component="span"
+                sx={{ fontWeight: 700, color: 'primary.main', fontSize: 15 }}
+              >
+                ¥{commercialBalanceYuan ?? '0.00'}
+              </Box>
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => navigate('/account#balance')}
+              sx={{ borderRadius: 1.5, minWidth: 0, px: 1.25 }}
+            >
+              充值
+            </Button>
+          </Stack>
+        ) : null}
+
+        {(commercialTraffic || current.extra) && (
           <>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <SpeedOutlined fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
-                {t('shared.labels.usedTotal')}:{' '}
+                流量额度：{' '}
                 <Box component="span" sx={{ fontWeight: 'medium' }}>
-                  {parseTraffic(usedTraffic)} /{' '}
-                  {parseTraffic(current.extra.total)}
+                  {trafficLabel
+                    ? trafficLabel
+                    : commercialTraffic?.unlimited
+                      ? `${parseTraffic(usedTraffic)} / 不限`
+                      : `${parseTraffic(usedTraffic)} / ${parseTraffic(totalTraffic)}`}
                 </Box>
               </Typography>
             </Stack>
 
-            {current.extra.expire > 0 && (
+            {commercialTraffic?.is_paid_user ? (
+              <Chip
+                size="small"
+                color="warning"
+                variant="outlined"
+                label="付费"
+                sx={{ alignSelf: 'flex-start', height: 22, fontWeight: 600 }}
+              />
+            ) : commercialTraffic ? (
+              <Chip
+                size="small"
+                color="primary"
+                variant="outlined"
+                label="免费"
+                sx={{ alignSelf: 'flex-start', height: 22, fontWeight: 600 }}
+              />
+            ) : null}
+
+            {expireAt > 0 && (
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <EventOutlined fontSize="small" color="action" />
                 <Typography variant="body2" color="text.secondary">
                   {t('shared.labels.expireTime')}:{' '}
                   <Box component="span" sx={{ fontWeight: 'medium' }}>
-                    {parseExpire(current.extra.expire)}
+                    {parseExpire(expireAt)}
                   </Box>
                 </Typography>
               </Stack>
             )}
 
-            <Box sx={{ mt: 1 }}>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mb: 0.5, display: 'block' }}
-              >
-                {trafficPercentage}%
-              </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={trafficPercentage}
-                sx={{
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: alpha(theme.palette.primary.main, 0.12),
-                }}
-              />
-            </Box>
+            {/* Dual traffic pools: free + paid bars */}
+            {commercialTraffic?.free || commercialTraffic?.paid ? (
+              <Stack spacing={1.25} sx={{ mt: 0.5 }}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 0.5, display: 'block' }}
+                  >
+                    免费流量{' '}
+                    {commercialTraffic.free?.label ||
+                      (commercialTraffic.free?.unlimited
+                        ? '不限'
+                        : `${parseTraffic(commercialTraffic.free?.used_bytes || 0)} / ${parseTraffic(commercialTraffic.free?.limit_bytes || 0)}`)}
+                  </Typography>
+                  {(commercialTraffic.free?.limit_bytes || 0) > 0 ? (
+                    <LinearProgress
+                      variant="determinate"
+                      color="success"
+                      value={Math.min(
+                        100,
+                        Math.round(
+                          ((commercialTraffic.free?.used_bytes || 0) /
+                            Math.max(1, commercialTraffic.free?.limit_bytes || 1)) *
+                            100,
+                        ),
+                      )}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: alpha(theme.palette.success.main, 0.12),
+                      }}
+                    />
+                  ) : (
+                    <LinearProgress
+                      variant="determinate"
+                      color="success"
+                      value={0}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: alpha(theme.palette.success.main, 0.12),
+                      }}
+                    />
+                  )}
+                </Box>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 0.5, display: 'block' }}
+                  >
+                    付费流量{' '}
+                    {commercialTraffic.paid?.label ||
+                      ((commercialTraffic.paid?.limit_bytes || 0) > 0
+                        ? `${parseTraffic(commercialTraffic.paid?.used_bytes || 0)} / ${parseTraffic(commercialTraffic.paid?.limit_bytes || 0)}`
+                        : commercialTraffic.is_paid_user
+                          ? commercialTraffic.paid?.unlimited
+                            ? '不限'
+                            : '未配置额度'
+                          : '未开通')}
+                  </Typography>
+                  {(commercialTraffic.paid?.limit_bytes || 0) > 0 ? (
+                    <LinearProgress
+                      variant="determinate"
+                      color="warning"
+                      value={Math.min(
+                        100,
+                        Math.round(
+                          ((commercialTraffic.paid?.used_bytes || 0) /
+                            Math.max(1, commercialTraffic.paid?.limit_bytes || 1)) *
+                            100,
+                        ),
+                      )}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: alpha(theme.palette.warning.main, 0.12),
+                      }}
+                    />
+                  ) : (
+                    <LinearProgress
+                      variant="determinate"
+                      color="warning"
+                      value={0}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: alpha(theme.palette.warning.main, 0.12),
+                        opacity: commercialTraffic.is_paid_user ? 1 : 0.45,
+                      }}
+                    />
+                  )}
+                </Box>
+              </Stack>
+            ) : (
+              !commercialTraffic?.unlimited &&
+              totalTraffic > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 0.5, display: 'block' }}
+                  >
+                    {trafficPercentage}%
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={trafficPercentage}
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                    }}
+                  />
+                </Box>
+              )
+            )}
           </>
         )}
       </Stack>
@@ -284,10 +479,103 @@ export const HomeProfileCard = ({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { refreshAll } = useAppRefreshers()
-  const { syncOfficial } = useAuth()
+  const { syncOfficial, session } = useAuth()
 
   // 更新当前订阅
   const [updating, setUpdating] = useState(false)
+  const [commercialTraffic, setCommercialTraffic] =
+    useState<TrafficInfo | null>(null)
+  const [commercialExpire, setCommercialExpire] = useState<number | null>(null)
+  const [commercialBalanceYuan, setCommercialBalanceYuan] = useState<
+    string | null
+  >(null)
+
+  // Live backend quota for official profile (check-in / purchases)
+  const loadCommercialQuota = useCallback(async () => {
+    if (!COMMERCIAL_MODE || !session || !current || !isOfficialProfile(current)) {
+      setCommercialTraffic(null)
+      setCommercialExpire(null)
+      setCommercialBalanceYuan(null)
+      return
+    }
+    try {
+      const p = await commercialGetProfile()
+      setCommercialBalanceYuan(
+        p.balance_yuan ||
+          ((Number(p.balance_cents) || 0) / 100).toFixed(2),
+      )
+      const t = p.traffic
+      if (t) {
+        const fmtPool = (pool?: {
+          label?: string
+          unlimited?: boolean
+          used_bytes?: number
+          limit_bytes?: number
+        }) => {
+          if (!pool) return null
+          if (pool.label) return pool.label
+          if (pool.unlimited) return `${parseTraffic(pool.used_bytes || 0)} / 不限`
+          if ((pool.limit_bytes || 0) > 0) {
+            return `${parseTraffic(pool.used_bytes || 0)} / ${parseTraffic(pool.limit_bytes || 0)}`
+          }
+          return '0 / 0'
+        }
+        const freeLabel = fmtPool(t.free)
+        const paidLabel = fmtPool(t.paid)
+        const dualLabel =
+          freeLabel || paidLabel
+            ? `免费 ${freeLabel || '—'} · 付费 ${paidLabel || '未开通'}`
+            : t.label || null
+        // progress: free pool for free users, paid pool for paid users
+        const usePaid =
+          t.is_paid_user || p.is_paid_user || (t.paid?.limit_bytes || 0) > 0
+        const primary = usePaid && (t.paid?.limit_bytes || 0) > 0 ? t.paid : t.free
+        // Hint for dual-pool traffic reporting
+        setTrafficPoolHint(
+          usePaid && (t.paid?.limit_bytes || 0) > 0 ? 'paid' : 'free',
+        )
+        setCommercialTraffic({
+          ...t,
+          free: t.free,
+          paid: t.paid,
+          is_paid_user: t.is_paid_user ?? p.is_paid_user,
+          unlimited: primary ? !!primary.unlimited && !(primary.limit_bytes || 0) : !!t.unlimited,
+          used_bytes: primary?.used_bytes ?? t.used_bytes ?? 0,
+          limit_bytes: primary?.limit_bytes ?? t.limit_bytes ?? 0,
+          exhausted: primary?.exhausted ?? t.exhausted,
+          label: dualLabel || t.label || undefined,
+        })
+      } else {
+        setCommercialTraffic(null)
+      }
+      setCommercialExpire(
+        Number(p.entitlement_until || p.expire_at || 0) || null,
+      )
+    } catch {
+      // keep last known / fall back to profile.extra
+    }
+  }, [session, current])
+
+  useEffect(() => {
+    void loadCommercialQuota()
+  }, [loadCommercialQuota])
+
+  useEffect(() => {
+    const onEnt = () => void loadCommercialQuota()
+    window.addEventListener(FORK_ENTITLEMENT_EVENT, onEnt)
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void loadCommercialQuota()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    const t = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void loadCommercialQuota()
+    }, 45_000)
+    return () => {
+      window.removeEventListener(FORK_ENTITLEMENT_EVENT, onEnt)
+      document.removeEventListener('visibilitychange', onVis)
+      window.clearInterval(t)
+    }
+  }, [loadCommercialQuota])
 
   const onUpdateProfile = useLockFn(async () => {
     if (!current?.uid) return
@@ -296,6 +584,7 @@ export const HomeProfileCard = ({
     try {
       if (COMMERCIAL_MODE && isOfficialProfile(current)) {
         await syncOfficial()
+        await loadCommercialQuota()
       } else {
         await updateProfile(current.uid, current.option)
       }
@@ -387,6 +676,21 @@ export const HomeProfileCard = ({
           current={current}
           onUpdateProfile={onUpdateProfile}
           updating={updating}
+          commercialTraffic={
+            COMMERCIAL_MODE && isOfficialProfile(current)
+              ? commercialTraffic
+              : null
+          }
+          commercialExpire={
+            COMMERCIAL_MODE && isOfficialProfile(current)
+              ? commercialExpire
+              : null
+          }
+          commercialBalanceYuan={
+            COMMERCIAL_MODE && isOfficialProfile(current)
+              ? commercialBalanceYuan
+              : null
+          }
         />
       ) : (
         <EmptyProfile onClick={goToProfiles} />

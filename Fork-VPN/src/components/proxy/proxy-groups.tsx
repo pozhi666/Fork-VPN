@@ -19,11 +19,16 @@ import {
   StickyVirtualList,
   type StickyVirtualListHandle,
 } from '@/components/base'
+import { useProfiles } from '@/hooks/use-profiles'
 import { useProxySelection } from '@/hooks/use-proxy-selection'
 import { useVerge } from '@/hooks/use-verge'
 import { useProxiesData } from '@/providers/app-data-context'
 import { calcuProxies } from '@/services/cmds'
 import delayManager from '@/services/delay'
+import {
+  filterEnabledProxies,
+  isProxyDisabledFull,
+} from '@/services/disabled-proxies'
 import { useQuery } from '@/services/query-client'
 import { debugLog } from '@/utils/debug'
 
@@ -431,14 +436,56 @@ function NormalProxyGroups(props: { mode: string }) {
     },
   })
 
+  const { current } = useProfiles()
+  const profileUid = current?.uid ?? ''
+
   const handleChangeProxy = useCallback(
     (group: IProxyGroupItem, proxy: IProxyItem) => {
       if (!['Selector', 'URLTest', 'Fallback'].includes(group.type)) return
+      // 统一在所有选择路径阻止禁用节点被选中
+      if (profileUid && isProxyDisabledFull(profileUid, group.name, proxy)) {
+        debugLog(
+          `[ProxyGroups] 节点已被禁用，拒绝选中: ${group.name} -> ${proxy.name}`,
+        )
+        return
+      }
 
       handleProxyGroupChange(group, proxy)
     },
-    [handleProxyGroupChange],
+    [handleProxyGroupChange, profileUid],
   )
+
+  // 自动选择 / URLTest / Fallback：若当前选中节点已被禁用，
+  // 切换到该组内首个可用节点。用 ref 防止轮询期间重复触发。
+  const autoSwitchingRef = useRef<Set<string>>(new Set())
+  const { changeProxy } = useProxySelection()
+  useEffect(() => {
+    if (!profileUid || !renderList.length) return
+    const seen = new Set<string>()
+    for (const item of renderList) {
+      if (item.type !== 0 || !item.group) continue
+      const group = item.group
+      if (seen.has(group.name)) continue
+      seen.add(group.name)
+      if (!['Selector', 'URLTest', 'Fallback'].includes(group.type)) continue
+      if (autoSwitchingRef.current.has(group.name)) continue
+      const nowProxy = group.all.find((p) => p.name === group.now)
+      if (!nowProxy) continue
+      if (!isProxyDisabledFull(profileUid, group.name, nowProxy)) continue
+      // 当前选中节点被禁用，找首个可用节点
+      const enabled = filterEnabledProxies(group.all, profileUid, group.name)
+      const first = enabled.find((p) => p.name !== group.now)
+      if (first) {
+        debugLog(
+          `[ProxyGroups] 当前节点已禁用，自动切换: ${group.name} -> ${first.name}`,
+        )
+        autoSwitchingRef.current.add(group.name)
+        changeProxy(group.name, first.name, group.now)
+        // 切换完成后清除标记（下一轮渲染已应用新选择）
+        queueMicrotask(() => autoSwitchingRef.current.delete(group.name))
+      }
+    }
+  }, [renderList, profileUid, changeProxy])
 
   // 滚到对应的节点
   const handleLocation = useStableCallback((group: IProxyGroupItem) => {

@@ -97,21 +97,21 @@ impl SilentUpdater {
 
 // ─── Version Comparison ───────────────────────────────────────────────────────
 
+fn version_parts(v: &str) -> Vec<u64> {
+    v.trim_start_matches('v')
+        .split('.')
+        .filter_map(|part| {
+            let numeric = part.split('-').next().unwrap_or("0");
+            numeric.parse::<u64>().ok()
+        })
+        .collect()
+}
+
 /// Returns true if version `a` <= version `b` using semver-like comparison.
 /// Strips leading 'v', splits on '.', handles pre-release suffixes.
 fn version_lte(a: &str, b: &str) -> bool {
-    let parse = |v: &str| -> Vec<u64> {
-        v.trim_start_matches('v')
-            .split('.')
-            .filter_map(|part| {
-                let numeric = part.split('-').next().unwrap_or("0");
-                numeric.parse::<u64>().ok()
-            })
-            .collect()
-    };
-
-    let a_parts = parse(a);
-    let b_parts = parse(b);
+    let a_parts = version_parts(a);
+    let b_parts = version_parts(b);
     let len = a_parts.len().max(b_parts.len());
 
     for i in 0..len {
@@ -125,6 +125,20 @@ fn version_lte(a: &str, b: &str) -> bool {
         }
     }
     true // equal
+}
+
+/// Reject updates that look like foreign app pollution (e.g. Clash Verge 2.x
+/// landing on Fork 0.x after a misconfigured updater endpoint).
+fn is_plausible_fork_update(current: &str, target: &str) -> bool {
+    let cur = version_parts(current);
+    let tgt = version_parts(target);
+    let cm = cur.first().copied().unwrap_or(0);
+    let tm = tgt.first().copied().unwrap_or(0);
+    // Allow same major or +1 major bumps only (0.x → 1.x ok; 0.x → 2.x reject)
+    if tm > cm.saturating_add(1) {
+        return false;
+    }
+    true
 }
 
 // ─── Startup Install & Cache Management ─────────────────────────────────────
@@ -148,6 +162,18 @@ impl SilentUpdater {
                 info,
                 Type::System,
                 "Update cache version ({}) <= current ({}), cleaning up",
+                cached_version,
+                current_version
+            );
+            Self::delete_cache();
+            return false;
+        }
+
+        if !is_plausible_fork_update(current_version, cached_version) {
+            logging!(
+                warn,
+                Type::System,
+                "Update cache version ({}) is implausible for Fork (current {}), discarding — possible Clash Verge pollution",
                 cached_version,
                 current_version
             );
@@ -438,6 +464,16 @@ impl SilentUpdater {
 
         let version = update.version.clone();
         logging!(info, Type::System, "Silent updater: update available: v{version}");
+
+        let current_version = env!("CARGO_PKG_VERSION");
+        if !is_plausible_fork_update(current_version, &version) {
+            logging!(
+                warn,
+                Type::System,
+                "Silent updater: ignoring implausible update v{version} (current {current_version}) — wrong channel?"
+            );
+            return Ok(());
+        }
 
         if let Some(body) = &update.body
             && body.to_lowercase().contains("break change")

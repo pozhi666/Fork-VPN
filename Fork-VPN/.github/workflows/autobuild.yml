@@ -1,10 +1,20 @@
 name: Auto Build
+# =============================================================================
+# FORK VPN — 上游自动构建工作流（已隔离，不再自动触发）
+# -----------------------------------------------------------------------------
+# 此文件源自上游 Clash Verge Rev：每日定时构建并发布到上游 autobuild
+# 渠道，生成上游品牌的 release 正文与上游 clash-verge-rev 下载链接。
+# Fork 不使用此 autobuild 渠道；Fork 自动构建请参考 fork-release.yml。
+# trigger 已禁用。保留文件供参考，待 fork-release.yml 覆盖后删除。
+# =============================================================================
 
 on:
-  workflow_dispatch:
-  schedule:
-    # UTC+8 12:00, 18:00 -> UTC 4:00, 10:00
-    - cron: '0 4,10 * * *'
+  # FORK: 已禁用自动与手动触发。原 workflow_dispatch 与 schedule 已移除。
+  # schedule:
+  #   - cron: '0 4,10 * * *'
+  push:
+    branches:
+      - 'fork-vpn-disabled-never-match'
 permissions: write-all
 env:
   TAG_NAME: autobuild

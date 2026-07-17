@@ -6,14 +6,19 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
   styled,
   SxProps,
   Theme,
 } from '@mui/material'
+import { useState, type MouseEvent } from 'react'
 
 import { BaseLoading } from '@/components/base'
+import { useDisabledProxiesCurrentProfile } from '@/hooks/use-disabled-proxies'
 import { useProxyDelayState } from '@/hooks/use-proxy-delay-state'
 import delayManager from '@/services/delay'
+import { showNotice } from '@/services/notice-service'
 
 interface Props {
   group: IProxyGroupItem
@@ -25,25 +30,32 @@ interface Props {
 }
 
 const Widget = styled(Box)(() => ({
-  padding: '3px 6px',
-  fontSize: 14,
-  borderRadius: '4px',
+  padding: '2px 8px',
+  fontSize: 12,
+  fontWeight: 600,
+  borderRadius: '8px',
+  fontVariantNumeric: 'tabular-nums',
 }))
 
 const TypeBox = styled('span')(({ theme }) => ({
   display: 'inline-block',
-  border: '1px solid #ccc',
-  borderColor: alpha(theme.palette.text.secondary, 0.36),
-  color: alpha(theme.palette.text.secondary, 0.42),
-  borderRadius: 4,
+  border: `1px solid ${alpha(theme.palette.text.secondary, 0.18)}`,
+  borderColor: alpha(theme.palette.text.secondary, 0.18),
+  color: alpha(theme.palette.text.secondary, 0.72),
+  borderRadius: 6,
   fontSize: 10,
+  fontWeight: 600,
   marginRight: '4px',
-  padding: '0 2px',
-  lineHeight: 1.25,
+  padding: '1px 5px',
+  lineHeight: 1.35,
+  letterSpacing: 0.2,
 }))
 
 export const ProxyItem = (props: Props) => {
   const { group, proxy, selected, showType = true, sx, onClick } = props
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
+  const { isDisabled, toggle } = useDisabledProxiesCurrentProfile(group.name)
+  const disabled = isDisabled(proxy)
 
   // -1/<=0 为不显示，-2 为 loading
   const { delayValue, isPreset, timeout, onDelay } = useProxyDelayState(
@@ -51,35 +63,59 @@ export const ProxyItem = (props: Props) => {
     group.name,
   )
 
+  const onContext = (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isPreset) return
+    setMenu({ x: e.clientX, y: e.clientY })
+  }
+
   return (
     <ListItem sx={sx}>
       <ListItemButton
         dense
-        selected={selected}
-        onClick={() => onClick?.(proxy.name)}
+        selected={selected && !disabled}
+        onContextMenu={onContext}
+        onClick={() => {
+          if (disabled) {
+            showNotice.info('节点已禁用，右键可重新启用')
+            return
+          }
+          onClick?.(proxy.name)
+        }}
         sx={[
-          { borderRadius: 1 },
+          {
+            borderRadius: '8px',
+            opacity: disabled ? 0.45 : 1,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            border: 'none',
+            transition: 'background .12s ease',
+          },
           ({ palette: { mode, primary } }) => {
-            const bgcolor = mode === 'light' ? '#ffffff' : '#24252f'
-            const selectColor = mode === 'light' ? primary.main : primary.light
+            const bgcolor =
+              mode === 'light' ? 'rgba(255,255,255,0.9)' : 'rgba(20,24,31,0.9)'
             const showDelay = delayValue > 0
 
             return {
+              '&:hover': {
+                bgcolor:
+                  mode === 'light'
+                    ? alpha(primary.main, 0.06)
+                    : 'rgba(255,255,255,0.06)',
+              },
               '&:hover .the-check': { display: !showDelay ? 'block' : 'none' },
               '&:hover .the-delay': { display: showDelay ? 'block' : 'none' },
               '&:hover .the-icon': { display: 'none' },
               '&.Mui-selected': {
-                width: `calc(100% + 3px)`,
-                marginLeft: `-3px`,
-                borderLeft: `3px solid ${selectColor}`,
+                borderColor: 'transparent',
                 bgcolor:
                   mode === 'light'
-                    ? alpha(primary.main, 0.15)
-                    : alpha(primary.main, 0.35),
+                    ? alpha(primary.main, 0.1)
+                    : alpha(primary.main, 0.14),
               },
               backgroundColor: bgcolor,
-              marginBottom: '8px',
-              height: '40px',
+              marginBottom: '4px',
+              minHeight: 40,
             }
           },
         ]}
@@ -99,6 +135,7 @@ export const ProxyItem = (props: Props) => {
                 {proxy.name}
                 {showType && proxy.now && ` - ${proxy.now}`}
               </Box>
+              {disabled && <TypeBox>已禁用</TypeBox>}
               {showType && !!proxy.provider && (
                 <TypeBox>{proxy.provider}</TypeBox>
               )}
@@ -173,6 +210,22 @@ export const ProxyItem = (props: Props) => {
           )}
         </ListItemIcon>
       </ListItemButton>
+      <Menu
+        open={Boolean(menu)}
+        onClose={() => setMenu(null)}
+        anchorReference="anchorPosition"
+        anchorPosition={menu ? { top: menu.y, left: menu.x } : undefined}
+      >
+        <MenuItem
+          onClick={() => {
+            const next = toggle(proxy)
+            setMenu(null)
+            showNotice.success(next ? `已禁用 ${proxy.name}` : `已启用 ${proxy.name}`)
+          }}
+        >
+          {disabled ? '启用此节点' : '禁用此节点'}
+        </MenuItem>
+      </Menu>
     </ListItem>
   )
 }

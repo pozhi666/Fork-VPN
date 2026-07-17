@@ -130,10 +130,9 @@ export function ForceUpdateDialog() {
         if (force || installing) return
         if (reason === 'backdropClick' || reason === 'escapeKeyDown') onSkip()
       }}
-      disableEscapeKeyDown={force || installing}
       fullWidth
       maxWidth="xs"
-      PaperProps={{ sx: { borderRadius: 2 } }}
+      slotProps={{ paper: { sx: { borderRadius: 2 } } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <SystemUpdateAltRounded color={force ? 'error' : 'primary'} />

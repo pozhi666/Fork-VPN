@@ -1,7 +1,6 @@
-import { Box, Typography, alpha, useTheme } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import React, { forwardRef, ReactNode } from 'react'
 
-// 自定义卡片组件接口
 interface EnhancedCardProps {
   title: ReactNode
   icon: ReactNode
@@ -12,7 +11,6 @@ interface EnhancedCardProps {
   noContentPadding?: boolean
 }
 
-// 自定义卡片组件
 export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
   (
     {
@@ -28,16 +26,7 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
   ) => {
     const theme = useTheme()
     const isDark = theme.palette.mode === 'dark'
-
-    // 统一的标题截断样式
-    const titleTruncateStyle = {
-      minWidth: 0,
-      maxWidth: '100%',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      display: 'block',
-    }
+    const accent = theme.palette[iconColor].main
 
     return (
       <Box
@@ -45,20 +34,23 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: 2,
-          backgroundColor: isDark ? '#282a36' : '#ffffff',
+          borderRadius: '12px',
+          bgcolor: isDark ? '#14181f' : '#ffffff',
+          // Quiet surfaces: light gets soft shadow, dark relies on fill vs page bg
+          border: isDark ? 'none' : '1px solid rgba(17,24,39,0.05)',
+          boxShadow: isDark ? 'none' : '0 1px 2px rgba(17,24,39,0.04)',
+          overflow: 'hidden',
         }}
         ref={ref}
       >
         <Box
           sx={{
             px: 2,
-            py: 1,
+            pt: 1.5,
+            pb: 0.5,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: 1,
-            borderColor: 'divider',
           }}
         >
           <Box
@@ -67,21 +59,17 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
               alignItems: 'center',
               minWidth: 0,
               flex: 1,
-              overflow: 'hidden',
+              gap: 1,
             }}
           >
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 1.5,
-                width: 38,
-                height: 38,
-                mr: 1.5,
-                flexShrink: 0,
-                backgroundColor: alpha(theme.palette[iconColor].main, 0.12),
-                color: theme.palette[iconColor].main,
+                color: accent,
+                opacity: 0.9,
+                lineHeight: 0,
+                '& svg': { fontSize: 18 },
               }}
             >
               {icon}
@@ -89,22 +77,25 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
             <Box sx={{ minWidth: 0, flex: 1 }}>
               {typeof title === 'string' ? (
                 <Typography
-                  variant="h6"
                   sx={{
-                    ...titleTruncateStyle,
-                    fontWeight: 'medium',
-                    fontSize: 18,
+                    fontWeight: 600,
+                    fontSize: 14,
+                    letterSpacing: -0.1,
+                    color: 'text.primary',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                   title={title}
                 >
                   {title}
                 </Typography>
               ) : (
-                <Box sx={titleTruncateStyle}>{title}</Box>
+                title
               )}
             </Box>
           </Box>
-          {action && <Box sx={{ ml: 2, flexShrink: 0 }}>{action}</Box>}
+          {action && <Box sx={{ ml: 1, flexShrink: 0 }}>{action}</Box>}
         </Box>
         <Box
           sx={{
@@ -112,6 +103,7 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
             display: 'flex',
             flexDirection: 'column',
             p: noContentPadding ? 0 : 2,
+            pt: noContentPadding ? 0 : 1.5,
             ...(minHeight && { minHeight }),
           }}
         >
@@ -121,3 +113,5 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
     )
   },
 )
+
+EnhancedCard.displayName = 'EnhancedCard'

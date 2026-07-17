@@ -44,9 +44,16 @@ pub async fn sync_official_subscription() -> Result<SyncResult> {
     let now = chrono::Local::now().timestamp() as usize;
 
     let extra = Some(PrfExtra {
-        upload: 0,
-        download: 0,
-        total: sub.traffic_total.unwrap_or(100 * 1024 * 1024 * 1024),
+        upload: sub.traffic_upload.unwrap_or(0),
+        download: sub.traffic_download.unwrap_or(0),
+        total: if sub.traffic_unlimited.unwrap_or(false) {
+            // large ceiling so UI shows "plenty left" while still showing used download
+            sub.traffic_total
+                .unwrap_or(1024 * 1024 * 1024 * 1024)
+                .max(sub.traffic_download.unwrap_or(0).saturating_add(1))
+        } else {
+            sub.traffic_total.unwrap_or(0).max(sub.traffic_download.unwrap_or(0))
+        },
         expire: sub.expire_at.max(0) as u64,
     });
 
@@ -104,6 +111,20 @@ pub async fn sync_official_subscription() -> Result<SyncResult> {
     let _ = feat::enhance_profiles().await?;
     handle::Handle::refresh_clash();
     handle::Handle::notify_profile_changed(&profile_uid);
+
+    // Entitlement change must kill in-flight tunnels (paid node still open after revoke).
+    // Same as tray "close all connections" — profile reload alone does not drop existing flows.
+    if let Err(err) = handle::Handle::mihomo()
+        .await
+        .close_all_connections()
+        .await
+    {
+        clash_verge_logging::logging!(
+            warn,
+            clash_verge_logging::Type::System,
+            "commercial sync: close_all_connections failed: {err}"
+        );
+    }
 
     let free = sub.free_count.unwrap_or(0);
     let paid = sub.paid_count.unwrap_or(0);

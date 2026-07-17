@@ -912,11 +912,13 @@ export const CurrentProxyCard = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              p: 1,
+              p: 1.25,
               mb: 2,
-              borderRadius: 1,
-              bgcolor: alpha(theme.palette.primary.main, 0.05),
-              border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+              borderRadius: '8px',
+              bgcolor:
+                theme.palette.mode === 'dark'
+                  ? 'rgba(255,255,255,0.04)'
+                  : 'rgba(17,24,39,0.03)',
             }}
           >
             <Box>

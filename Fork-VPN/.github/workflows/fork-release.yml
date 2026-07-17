@@ -1,0 +1,235 @@
+# =============================================================================
+# Fork VPN — 自有发布工作流骨架
+# -----------------------------------------------------------------------------
+# 目标：构建 Tauri updater 制品（installer + .sig），上传到 Fork 自有 HTTPS
+# 位置（占位），并调用 Fork 后端管理 API 登记版本，使客户端 updater endpoint
+# (https://your-domain.example/api/v1/client/updater/latest.json) 能返回正确版本。
+#
+# 与上游 release.yml 的区别：
+#   - 不提交 Winget
+#   - 不生成上游 update.json / update-proxy.json
+#   - 不使用上游 clash-verge-rev 仓库下载链接，改用 Fork 自有分发位置
+#   - release 正文使用 Fork 品牌
+#
+# 安全：所有凭据通过 secrets 引用，不写入明文。所需 secrets（在使用前于仓库
+# Settings > Secrets 配置，本文件不含真实值）：
+#   - TAURI_PRIVATE_KEY / TAURI_KEY_PASSWORD  : Tauri updater 签名
+#   - FORK_ASSET_UPLOAD_URL / FORK_ASSET_UPLOAD_TOKEN : 自有 HTTPS 上传
+#   - FORK_BACKEND_API_BASE / FORK_BACKEND_API_TOKEN : 后端管理 API
+# =============================================================================
+
+name: Fork Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 0.2.0); must match package.json'
+        required: true
+      channel:
+        description: 'Channel'
+        type: choice
+        default: stable
+        options:
+          - stable
+          - prerelease
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+env:
+  CARGO_INCREMENTAL: '0'
+  RUST_BACKTRACE: short
+  HUSKY: '0'
+
+concurrency:
+  group: '${{ github.workflow }} - ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: false
+
+jobs:
+  check_tag_version:
+    name: Check Tag and package.json Version Consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check tag and package.json version
+        run: |
+          TAG_REF="${GITHUB_REF_NAME:-${GITHUB_REF##*/}}"
+          # workflow_dispatch 时 TAG_REF 为空，跳过 tag 校验
+          if [ -z "$TAG_REF" ] || [[ "$TAG_REF" != v* ]]; then
+            echo "No git tag context (manual run); skipping tag/version consistency check."
+            exit 0
+          fi
+          echo "Current tag: $TAG_REF"
+          PKG_VERSION=$(jq -r .version package.json)
+          echo "package.json version: $PKG_VERSION"
+          EXPECTED_TAG="v$PKG_VERSION"
+          if [[ "$TAG_REF" != "$EXPECTED_TAG" ]]; then
+            echo "Version mismatch: tag=$TAG_REF package.json=$EXPECTED_TAG"
+            exit 1
+          fi
+          echo "Tag and package.json version are consistent."
+
+  build:
+    name: Build (Tauri)
+    needs: [check_tag_version]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.96.1'
+          targets: ${{ matrix.target }}
+
+      - name: Add Rust Target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: 'v1-fork'
+          key: 'fork-${{ matrix.os }}-${{ matrix.target }}'
+          workspaces: |
+            . -> target
+          cache-all-crates: true
+          cache-workspace-crates: true
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxslt1.1 libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+
+      - uses: pnpm/action-setup@v6
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Pnpm install and prebuild
+        run: |
+          pnpm i
+          pnpm run prebuild ${{ matrix.target }}
+
+      - name: Add Rust Target (pinned)
+        run: |
+          rustup target add ${{ matrix.target }} --toolchain 1.95.0 || rustup target add ${{ matrix.target }}
+          rustup target list --installed
+
+      - name: Tauri build (with updater artifacts + .sig)
+        uses: tauri-apps/tauri-action@v1.0.0
+        env:
+          NODE_OPTIONS: '--max_old_space_size=4096'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Fork ${{ github.ref_name }}'
+          releaseBody: 'Fork VPN release ${{ github.ref_name }}.'
+          releaseDraft: true
+          prerelease: ${{ inputs.channel == 'prerelease' }}
+          tauriScript: pnpm
+          args: --target ${{ matrix.target }}
+
+      - name: Upload built artifacts (for downstream publish job)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fork-artifacts-${{ matrix.target }}
+          path: |
+            target/${{ matrix.target }}/release/bundle/nsis/*setup*.exe
+            target/${{ matrix.target }}/release/bundle/nsis/*setup*.exe.sig
+            target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            target/${{ matrix.target }}/release/bundle/dmg/*.dmg.sig
+            target/${{ matrix.target }}/release/bundle/deb/*.deb
+            target/${{ matrix.target }}/release/bundle/deb/*.deb.sig
+            target/${{ matrix.target }}/release/bundle/rpm/*.rpm
+            target/${{ matrix.target }}/release/bundle/rpm/*.rpm.sig
+          if-no-files-found: warn
+          retention-days: 7
+
+  publish-to-fork-backend:
+    name: Upload to Fork asset store + register with backend
+    needs: [build]
+    runs-on: ubuntu-latest
+    # 只在具备所需 secrets 时执行，避免手动测试时失败
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: fork-artifacts-*
+          merge-multiple: false
+
+      - name: Resolve version
+        run: |
+          VERSION="${GITHUB_REF_NAME:-${{ inputs.version }}}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Upload artifacts to Fork HTTPS asset store
+        # 占位：将 installer + .sig 上传到 Fork 自有 HTTPS 位置（CDN / 对象存储）。
+        # 实际实现请替换为 rclone / aws s3 / curl PUT 等，使用下方 secrets。
+        env:
+          FORK_ASSET_UPLOAD_URL: ${{ secrets.FORK_ASSET_UPLOAD_URL }}
+          FORK_ASSET_UPLOAD_TOKEN: ${{ secrets.FORK_ASSET_UPLOAD_TOKEN }}
+        run: |
+          echo "TODO: upload installers + .sig files under artifacts/ to"
+          echo "  \${FORK_ASSET_UPLOAD_URL}/fork/\${VERSION}/"
+          echo "using bearer token \${FORK_ASSET_UPLOAD_TOKEN} (masked)."
+          echo "Implement me (e.g. curl --fail -T ... -H \"Authorization: Bearer \$FORK_ASSET_UPLOAD_TOKEN\")."
+          # 占位：不在此处硬编码真实 URL/token。占位逻辑直接跳过实际上传。
+          exit 0
+
+      - name: Register version with Fork backend management API
+        # 占位：调用 Fork 后端管理 API 登记版本号与制品 URL，使后端在
+        # /api/v1/client/updater/latest.json 返回该版本。签名信息由后端从已上传的
+        # .sig 读取或通过制品清单提供。
+        env:
+          FORK_BACKEND_API_BASE: ${{ secrets.FORK_BACKEND_API_BASE }}
+          FORK_BACKEND_API_TOKEN: ${{ secrets.FORK_BACKEND_API_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+        run: |
+          echo "TODO: POST \${FORK_BACKEND_API_BASE}/api/v1/admin/client/releases"
+          echo "  body: { \"version\": \"\${VERSION}\", \"channel\": \"stable\", \"artifacts\": { ... } }"
+          echo "  Authorization: Bearer \${FORK_BACKEND_API_TOKEN} (masked)."
+          echo "Implement me. 占位逻辑直接跳过。"
+          exit 0

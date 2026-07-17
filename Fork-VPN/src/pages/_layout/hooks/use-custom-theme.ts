@@ -1,4 +1,4 @@
-import { alpha, createTheme, Theme as MuiTheme, Shadows } from '@mui/material'
+import { alpha, createTheme, Theme as MuiTheme } from '@mui/material'
 import {
   getCurrentWebviewWindow,
   WebviewWindow,
@@ -147,10 +147,13 @@ export const useCustomTheme = () => {
     let muiTheme: MuiTheme
 
     try {
+      const paperBg = mode === 'light' ? '#FFFFFF' : '#14181f'
+      const defaultBg = mode === 'light' ? '#F4F5F7' : '#0A0C10'
       muiTheme = createTheme({
         breakpoints: {
           values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
         },
+        shape: { borderRadius: 10 },
         palette: {
           mode,
           primary: { main: setting.primary_color || dt.primary_color },
@@ -164,15 +167,91 @@ export const useCustomTheme = () => {
             secondary: setting.secondary_text || dt.secondary_text,
           },
           background: {
-            paper: dt.background_color,
-            default: dt.background_color,
+            paper: paperBg,
+            default: defaultBg,
           },
+          divider:
+            mode === 'light'
+              ? 'rgba(17, 24, 39, 0.08)'
+              : 'rgba(255, 255, 255, 0.08)',
         },
-        shadows: Array(25).fill('none') as Shadows,
         typography: {
           fontFamily: setting.font_family
             ? `${setting.font_family}, ${dt.font_family}`
             : dt.font_family,
+          button: { textTransform: 'none', fontWeight: 600 },
+        },
+        components: {
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 9,
+                boxShadow: 'none',
+                fontWeight: 600,
+                '&:hover': { boxShadow: 'none' },
+                '&.MuiButton-containedPrimary': {
+                  color: mode === 'light' ? '#fff' : '#042f2e',
+                },
+              },
+              outlined: {
+                borderColor:
+                  mode === 'light'
+                    ? 'rgba(17, 24, 39, 0.12)'
+                    : 'rgba(255, 255, 255, 0.12)',
+              },
+            },
+          },
+          MuiTextField: {
+            styleOverrides: {
+              root: {
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 10,
+                  backgroundColor:
+                    mode === 'light' ? '#F9FAFB' : 'rgba(255,255,255,0.03)',
+                },
+              },
+            },
+          },
+          MuiPaper: {
+            styleOverrides: {
+              root: { backgroundImage: 'none' },
+            },
+          },
+          MuiChip: {
+            styleOverrides: {
+              root: { fontWeight: 600, borderRadius: 8 },
+            },
+          },
+          MuiLinearProgress: {
+            styleOverrides: {
+              root: { borderRadius: 999, height: 7 },
+              bar: { borderRadius: 999 },
+            },
+          },
+          MuiCard: {
+            styleOverrides: {
+              root: {
+                borderRadius: 14,
+                border:
+                  mode === 'light'
+                    ? '1px solid rgba(17,24,39,0.06)'
+                    : '1px solid rgba(255,255,255,0.07)',
+                boxShadow:
+                  mode === 'light' ? '0 1px 2px rgba(17,24,39,0.04)' : 'none',
+              },
+            },
+          },
+          MuiDialog: {
+            styleOverrides: {
+              paper: {
+                borderRadius: 14,
+                border:
+                  mode === 'light'
+                    ? '1px solid rgba(17,24,39,0.06)'
+                    : '1px solid rgba(255,255,255,0.08)',
+              },
+            },
+          },
         },
       })
     } catch (e) {
@@ -181,6 +260,7 @@ export const useCustomTheme = () => {
         breakpoints: {
           values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
         },
+        shape: { borderRadius: 12 },
         palette: {
           mode,
           primary: { main: dt.primary_color },
@@ -191,8 +271,8 @@ export const useCustomTheme = () => {
           success: { main: dt.success_color },
           text: { primary: dt.primary_text, secondary: dt.secondary_text },
           background: {
-            paper: dt.background_color,
-            default: dt.background_color,
+            paper: mode === 'light' ? '#FFFFFF' : '#0F172A',
+            default: mode === 'light' ? '#F1F5F9' : '#070B14',
           },
         },
         typography: { fontFamily: dt.font_family },
@@ -201,11 +281,11 @@ export const useCustomTheme = () => {
 
     const rootEle = document.documentElement
     if (rootEle) {
-      const backgroundColor = mode === 'light' ? '#ECECEC' : dt.background_color
-      const selectColor = mode === 'light' ? '#f5f5f5' : '#3E3E3E'
-      const scrollColor = mode === 'light' ? '#90939980' : '#555555'
+      const backgroundColor = mode === 'light' ? '#F6F7F9' : '#0A0C10'
+      const selectColor = mode === 'light' ? '#ccfbf1' : '#134e4a'
+      const scrollColor = mode === 'light' ? '#c4c8d080' : '#4b5563'
       const dividerColor =
-        mode === 'light' ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)'
+        mode === 'light' ? 'rgba(17, 24, 39, 0.08)' : 'rgba(255, 255, 255, 0.08)'
       rootEle.style.setProperty('--divider-color', dividerColor)
       rootEle.style.setProperty('--background-color', backgroundColor)
       rootEle.style.setProperty('--selection-color', selectColor)
@@ -217,15 +297,15 @@ export const useCustomTheme = () => {
       )
       rootEle.style.setProperty(
         '--window-border-color',
-        mode === 'light' ? '#cccccc' : '#1E1E1E',
+        mode === 'light' ? 'rgba(17,24,39,0.1)' : 'rgba(255,255,255,0.1)',
       )
       rootEle.style.setProperty(
         '--scrollbar-bg',
-        mode === 'light' ? '#f1f1f1' : '#2E303D',
+        mode === 'light' ? '#eef0f3' : '#14181f',
       )
       rootEle.style.setProperty(
         '--scrollbar-thumb',
-        mode === 'light' ? '#c1c1c1' : '#555555',
+        mode === 'light' ? '#c4c8d0' : '#4b5563',
       )
       rootEle.style.setProperty(
         '--user-background-image',
@@ -294,15 +374,12 @@ export const useCustomTheme = () => {
           border-color: var(--window-border-color) !important;
         }
 
-        /* 确保模态框和对话框也使用暗色主题 */
         .MuiDialog-paper {
-          background-color: ${mode === 'light' ? '#ffffff' : '#2E303D'} !important;
+          background-color: ${mode === 'light' ? '#ffffff' : '#14181f'} !important;
         }
 
-        /* 移除可能的白色点或线条 */
         * {
           outline: none !important;
-          box-shadow: none !important;
         }
       `
 

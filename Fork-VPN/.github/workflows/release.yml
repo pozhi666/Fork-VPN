@@ -1,13 +1,23 @@
 name: Release Build
+# =============================================================================
+# FORK VPN — 上游发布工作流（已隔离，不再自动触发）
+# -----------------------------------------------------------------------------
+# 此文件源自上游 Clash Verge Rev，生成上游品牌的 release 制品、上游
+# update.json、Winget 提交，并使用上游 clash-verge-rev 仓库下载链接。
+# 这些行为与 Fork 分发模型不符，会导致"误发上游制品"。
+# Fork 自有发布流程见 fork-release.yml。
+# 下方 trigger 已被改为永不自动触发，仅保留文件供参考与逐步迁移。
+# 当 fork-release.yml 覆盖了对应能力后，可整体删除本文件。
+# =============================================================================
 
 on:
-  # ! 为了避免重复发布版本，应当通过独特 git tag 触发。
-  # ! 不再使用 workflow_dispatch 触发。
+  # ! FORK: 已禁用自动触发。原上游 trigger 注释保留以备参考。
+  # ! 原上游行为：push v*.*.* tag 触发；现改为永不匹配的模式。
   # workflow_dispatch:
   push:
     # -rc tag 时预览发布, 跳过 telegram 通知、跳过 winget 提交、跳过 latest.json 文件更新
     tags:
-      - 'v*.*.*'
+      - 'fork-vpn-disabled-never-match'
 permissions: write-all
 env:
   CARGO_INCREMENTAL: 0
@@ -544,7 +554,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-update:
-    if: ${{ !contains(github.ref_name, '-rc') }}
+    # FORK: 禁用上游 update.json 生成。Fork updater 由 fork-release.yml +
+    # 后端管理 API 生成 latest.json，不再走上游 updater.mjs / update.json。
+    if: ${{ false }}
     name: Release Update
     runs-on: ubuntu-latest
     needs: [update_tag]
@@ -571,7 +583,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-update-for-fixed-webview2:
-    if: ${{ !contains(github.ref_name, '-rc') }}
+    # FORK: 禁用上游 fixed-webview2 update.json 生成。
+    if: ${{ false }}
     runs-on: ubuntu-latest
     needs: [update_tag]
     steps:
@@ -597,7 +610,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   submit-to-winget:
-    if: ${{ !contains(github.ref_name, '-rc') }}
+    # FORK: 禁用 Winget 提交。Fork 不发布到上游 ClashVergeRev Winget 仓库。
+    if: ${{ false }}
     name: Submit to Winget
     runs-on: ubuntu-latest
     needs: [update_tag, release-update]

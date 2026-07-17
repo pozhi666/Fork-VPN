@@ -1,6 +1,6 @@
 # Clash 二次开发项目完整改造方案
 
-> 适用范围：`D:\clash\clash-verge-rev-dev` 桌面客户端与 `D:\clash\fork-backend` 商业后端  
+> 适用范围：`D:\clash\Fork-VPN` 桌面客户端与 `D:\clash\fork-backend` 商业后端  
 > 文档版本：1.0  
 > 制定日期：2026-07-11  
 > 方案性质：静态源码审查后的工程改造计划
@@ -27,7 +27,7 @@
 
 ### 2.1 桌面客户端
 
-路径：`D:\clash\clash-verge-rev-dev`
+路径：`D:\clash\Fork-VPN`
 
 主要技术：
 
@@ -126,10 +126,10 @@ validate -> plan -> lock -> execute -> verify -> persist -> notify -> unlock
 
 ### 现状证据
 
-- `clash-verge-rev-dev/src-tauri/src/feat/backup.rs:129-137`
-- `clash-verge-rev-dev/src-tauri/src/feat/backup.rs:314-318`
-- `clash-verge-rev-dev/src-tauri/src/utils/resolve/mod.rs:119-121`
-- `clash-verge-rev-dev/src-tauri/src/utils/init.rs:411-447`
+- `Fork-VPN/src-tauri/src/feat/backup.rs:129-137`
+- `Fork-VPN/src-tauri/src/feat/backup.rs:314-318`
+- `Fork-VPN/src-tauri/src/utils/resolve/mod.rs:119-121`
+- `Fork-VPN/src-tauri/src/utils/init.rs:411-447`
 
 当前备份恢复会将 ZIP 内容直接解压至应用目录，恢复后的 `verge.yaml` 可携带 `startup_script`，应用下次启动时可能执行备份中植入的 PowerShell、Batch 或 Shell 脚本。
 
@@ -206,7 +206,7 @@ profiles/<safe-file-name>.yaml
 - `fork-backend/src/auth.js:4`
 - `fork-backend/src/server.js:27`
 - `fork-backend/src/server.js:14-18`
-- `clash-verge-rev-dev/COMMERCIAL.md:56-60`
+- `Fork-VPN/COMMERCIAL.md:56-60`
 
 ### 改造方案
 
@@ -278,8 +278,8 @@ npm run bootstrap-admin
 
 ### 现状证据
 
-- `clash-verge-rev-dev/src-tauri/src/commercial/api.rs:8-20`
-- `clash-verge-rev-dev/src/services/commercial.ts:191-205`
+- `Fork-VPN/src-tauri/src/commercial/api.rs:8-20`
+- `Fork-VPN/src/services/commercial.ts:191-205`
 - `fork-backend/src/ezpay.js:8-24`
 
 ### 改造方案
@@ -336,8 +336,8 @@ npm run bootstrap-admin
 
 相关文件：
 
-- `clash-verge-rev-dev/src-tauri/tauri.conf.json:31-42`
-- `clash-verge-rev-dev/src/components/layout/force-update-dialog.tsx:42-166`
+- `Fork-VPN/src-tauri/tauri.conf.json:31-42`
+- `Fork-VPN/src/components/layout/force-update-dialog.tsx:42-166`
 
 ### 目标方案
 
@@ -372,10 +372,10 @@ npm run bootstrap-admin
 
 ### 现状证据
 
-- `clash-verge-rev-dev/scripts/prebuild.mjs:172-180`
-- `clash-verge-rev-dev/scripts/prebuild.mjs:230-275`
-- `clash-verge-rev-dev/scripts/prebuild.mjs:494-537`
-- `clash-verge-rev-dev/scripts/prebuild.mjs:579-737`
+- `Fork-VPN/scripts/prebuild.mjs:172-180`
+- `Fork-VPN/scripts/prebuild.mjs:230-275`
+- `Fork-VPN/scripts/prebuild.mjs:494-537`
+- `Fork-VPN/scripts/prebuild.mjs:579-737`
 
 ### 改造方案
 
@@ -816,9 +816,9 @@ rolled_back
 
 相关位置：
 
-- `clash-verge-rev-dev/src/pages/profiles.tsx:432-459`
-- `clash-verge-rev-dev/src/hooks/use-profiles.ts:33-60`
-- `clash-verge-rev-dev/src/services/cmds.ts:22-26`
+- `Fork-VPN/src/pages/profiles.tsx:432-459`
+- `Fork-VPN/src/hooks/use-profiles.ts:33-60`
+- `Fork-VPN/src/services/cmds.ts:22-26`
 
 推荐实现：
 
@@ -845,7 +845,7 @@ rolled_back
 
 相关位置：
 
-- `clash-verge-rev-dev/src/pages/proxies.tsx:74-90`
+- `Fork-VPN/src/pages/proxies.tsx:74-90`
 
 关闭链式代理时不能先更新 localStorage 和 React 状态。
 
@@ -877,8 +877,8 @@ UI 显示 closing
 
 相关位置：
 
-- `clash-verge-rev-dev/src/hooks/use-proxy-selection.ts:81-115`
-- `clash-verge-rev-dev/src/components/proxy/proxy-groups.tsx:424-432`
+- `Fork-VPN/src/hooks/use-proxy-selection.ts:81-115`
+- `Fork-VPN/src/components/proxy/proxy-groups.tsx:424-432`
 
 将以下动作组合为一个用例：
 
@@ -901,7 +901,7 @@ UI 显示 closing
 
 相关位置：
 
-- `clash-verge-rev-dev/src-tauri/src/feat/config.rs:202-290`
+- `Fork-VPN/src-tauri/src/feat/config.rs:202-290`
 
 当前配置修改可能先执行内核、系统代理、自动启动、热键和托盘副作用，最后保存；失败时只回滚 Draft，无法保证系统状态恢复。
 
@@ -936,11 +936,11 @@ ConfigChangeResult
 
 ## 7.1 当前风险位置
 
-- CSP 关闭：`clash-verge-rev-dev/src-tauri/tauri.conf.json:49-60`
-- 文件范围 `**`：`clash-verge-rev-dev/src-tauri/capabilities/migrated.json:8-18`
-- Shell 权限：`clash-verge-rev-dev/src-tauri/capabilities/migrated.json:66-81`
-- 任意 HTTP/HTTPS：`clash-verge-rev-dev/src-tauri/capabilities/desktop.json:22-27`
-- 原始 HTML Markdown：`clash-verge-rev-dev/src/components/setting/mods/update-viewer.tsx:48-56`
+- CSP 关闭：`Fork-VPN/src-tauri/tauri.conf.json:49-60`
+- 文件范围 `**`：`Fork-VPN/src-tauri/capabilities/migrated.json:8-18`
+- Shell 权限：`Fork-VPN/src-tauri/capabilities/migrated.json:66-81`
+- 任意 HTTP/HTTPS：`Fork-VPN/src-tauri/capabilities/desktop.json:22-27`
+- 原始 HTML Markdown：`Fork-VPN/src/components/setting/mods/update-viewer.tsx:48-56`
 
 ## 7.2 Capability 重建
 
@@ -1033,11 +1033,11 @@ frame-ancestors 'none'
 
 当前前端命令集中于：
 
-- `clash-verge-rev-dev/src/services/cmds.ts`
+- `Fork-VPN/src/services/cmds.ts`
 
 Rust handler 位于：
 
-- `clash-verge-rev-dev/src-tauri/src/lib.rs:132-230`
+- `Fork-VPN/src-tauri/src/lib.rs:132-230`
 
 建议使用 Specta 或 ts-rs 从 Rust 生成 TypeScript binding。
 
@@ -1088,7 +1088,7 @@ API 版本策略：
 
 当前 SWR 与自建 Map 双缓存位于：
 
-- `clash-verge-rev-dev/src/services/query-client.ts:32-132`
+- `Fork-VPN/src/services/query-client.ts:32-132`
 
 目标：只保留一个 server-state cache。
 
@@ -1240,8 +1240,8 @@ src/
 
 当前部分 Suspense fallback 为 `null`：
 
-- `clash-verge-rev-dev/src/pages/_routers.tsx:90-102`
-- `clash-verge-rev-dev/src/pages/_layout.tsx:567-580`
+- `Fork-VPN/src/pages/_routers.tsx:90-102`
+- `Fork-VPN/src/pages/_layout.tsx:567-580`
 
 改为统一 Route Skeleton：
 
@@ -1265,7 +1265,7 @@ ErrorBoundary 改为：
 
 删除：
 
-- `clash-verge-rev-dev/src/pages/_layout/hooks/use-custom-theme.ts:302-305` 中全局 `outline: none !important`。
+- `Fork-VPN/src/pages/_layout/hooks/use-custom-theme.ts:302-305` 中全局 `outline: none !important`。
 
 统一 `:focus-visible` 样式。
 
@@ -1384,9 +1384,9 @@ status
 
 相关位置：
 
-- `clash-verge-rev-dev/src-tauri/src/utils/help.rs:61-73`
-- `clash-verge-rev-dev/src-tauri/src/cmd/save_profile.rs:55-90`
-- `clash-verge-rev-dev/src-tauri/src/config/profiles.rs:164-269`
+- `Fork-VPN/src-tauri/src/utils/help.rs:61-73`
+- `Fork-VPN/src-tauri/src/cmd/save_profile.rs:55-90`
+- `Fork-VPN/src-tauri/src/config/profiles.rs:164-269`
 
 统一实现 `atomic_write()`：
 
@@ -1654,7 +1654,7 @@ cargo test --locked
 
 当前配置需处理：
 
-- `clash-verge-rev-dev/src-tauri/tauri.windows.conf.json:7-9`
+- `Fork-VPN/src-tauri/tauri.windows.conf.json:7-9`
 
 ### macOS
 

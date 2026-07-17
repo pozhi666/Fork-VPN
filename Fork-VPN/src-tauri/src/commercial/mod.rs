@@ -6,6 +6,7 @@
 pub mod api;
 pub mod auth;
 pub mod guard;
+pub mod secure_store;
 pub mod sync;
 
 pub use auth::{AuthSession, CommercialUser};

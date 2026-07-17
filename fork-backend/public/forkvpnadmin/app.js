@@ -13,12 +13,20 @@ const state = {
 const PAGE_META = {
   overview: { title: '概览', desc: '运营数据与快捷入口' },
   users: { title: '用户', desc: '账号、权益、改密、代开、删除' },
+  orders: { title: '订单', desc: '支付订单 · 充值 · 取消 / 退款' },
+  tickets: { title: '工单', desc: '用户反馈 · 回复 · 关闭' },
   sources: { title: '订阅源', desc: '线路池：公开 / 需商品解锁' },
-  plans: { title: '商品', desc: '免费/付费由价格决定 · 绑定线路' },
-  coupons: { title: '兑换码', desc: '优惠券 / 兑换码生成与管理' },
+  plans: { title: '商品套餐', desc: '价格决定免费/付费 · 绑定线路' },
+  coupons: { title: '兑换码', desc: '优惠券生成与管理' },
+  invites: { title: '邀请码', desc: '运营通用邀请码' },
   announcements: { title: '公告', desc: '客户端运营通知' },
-  settings: { title: '系统设置', desc: '运营配置与管理员密码' },
+  settings: { title: '运营配置', desc: '注册 · 邀请返利 · 签到' },
+  update: { title: '客户端更新', desc: '版本号与安装包清单' },
+  ops: { title: '运维', desc: '健康检查 · 备份 · 审计日志' },
+  account: { title: '管理员', desc: '修改控制台登录密码' },
 }
+
+const ALL_TABS = Object.keys(PAGE_META)
 
 let usersCache = []
 
@@ -114,13 +122,25 @@ function switchTab(name) {
   document.querySelectorAll('.nav-item').forEach((b) => {
     b.classList.toggle('active', b.dataset.tab === name)
   })
-  ;['overview', 'users', 'sources', 'plans', 'coupons', 'announcements', 'settings'].forEach((t) => {
+  ALL_TABS.forEach((t) => {
     const el = $(`tab-${t}`)
     if (el) el.classList.toggle('hidden', t !== name)
   })
   if (name === 'coupons') {
     void loadCoupons()
     fillCouponProductSelect()
+  }
+  if (name === 'orders') {
+    void loadOrdersAdmin()
+  }
+  if (name === 'invites') {
+    void loadInvitesAdmin()
+  }
+  if (name === 'ops') {
+    void loadOps()
+  }
+  if (name === 'settings' || name === 'update') {
+    void loadSettings()
   }
   const meta = PAGE_META[name] || PAGE_META.overview
   $('page-title').textContent = meta.title
@@ -227,7 +247,7 @@ async function loadStats() {
 function renderUsersTable(items) {
   const body = $('users-body')
   if (!items.length) {
-    body.innerHTML = `<tr class="empty-row"><td colspan="5">无匹配用户</td></tr>`
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">无匹配用户</td></tr>`
     return
   }
   body.innerHTML = items
@@ -237,34 +257,41 @@ function renderUsersTable(items) {
       const hasEnt = ent > now || (u.active_purchases || 0) > 0
       const entExpired = ent > 0 && ent < now
       const statusClass =
-        u.status !== 'active' ? 'off' : entExpired ? 'warn' : 'ok'
+        u.status !== 'active' ? 'off' : u.traffic_exhausted ? 'warn' : entExpired ? 'warn' : 'ok'
       const statusText =
         u.status !== 'active'
           ? '已禁用'
-          : !hasEnt && !ent
-            ? '正常·无权益'
-            : entExpired
-              ? '权益已过期'
-              : '正常'
+          : u.traffic_exhausted
+            ? '流量用尽'
+            : !hasEnt && !ent
+              ? '正常·无权益'
+              : entExpired
+                ? '权益已过期'
+                : '正常'
       const bought = (u.purchase_names || []).join('、') || '无商品权益'
       const unlocked = (u.unlocked_sources || u.paid_sources || []).join('、') || '—'
       const pub = (u.public_sources || u.free_sources || []).join('、') || '—'
       const entLabel = ent > 0 ? fmtTime(ent) : '—'
+      const trafficLabel = escapeHtml(u.traffic_label || '—')
+      const balYuan = escapeHtml(u.balance_yuan || ((Number(u.balance_cents) || 0) / 100).toFixed(2))
       return `<tr>
         <td>
           <span class="cell-title">${escapeHtml(u.username)}</span>
-          <span class="cell-sub">${escapeHtml(u.email || '无邮箱')} · 注册 ${fmtTime(u.created_at)}</span>
+          <span class="cell-sub">${escapeHtml(u.email || '无邮箱')} · 余额 ¥${balYuan} · 注册 ${fmtTime(u.created_at)}</span>
         </td>
         <td>
           <span class="cell-title">${escapeHtml(bought)}</span>
           <span class="cell-sub">公开：${escapeHtml(pub)} · 解锁：${escapeHtml(unlocked)}</span>
         </td>
         <td><span class="badge ${statusClass}">${statusText}</span></td>
+        <td class="mono"><span class="cell-sub" style="margin:0">${trafficLabel}</span></td>
         <td class="mono">${entLabel}</td>
         <td class="col-actions">
           <div class="actions">
             <button type="button" class="btn btn-sm btn-secondary" data-act="detail" data-id="${u.id}">详情</button>
             <button type="button" class="btn btn-sm btn-ghost" data-act="grant" data-id="${u.id}">代开</button>
+            <button type="button" class="btn btn-sm btn-ghost" data-act="balance" data-id="${u.id}">余额</button>
+            <button type="button" class="btn btn-sm btn-ghost" data-act="reset-traffic" data-id="${u.id}">清零流量</button>
             <button type="button" class="btn btn-sm btn-ghost" data-act="toggle" data-id="${u.id}" data-status="${u.status}">
               ${u.status === 'active' ? '禁用' : '启用'}
             </button>
@@ -283,6 +310,28 @@ function renderUsersTable(items) {
           openUserDetail(u)
           return
         }
+        if (btn.dataset.act === 'balance') {
+          const cur = u.balance_yuan || ((Number(u.balance_cents) || 0) / 100).toFixed(2)
+          const raw = prompt(
+            `调整余额（元）· 当前 ¥${cur}\n正数增加、负数扣减，例如 10 或 -5`,
+            '10',
+          )
+          if (raw == null || String(raw).trim() === '') return
+          const yuan = Number(String(raw).trim())
+          if (!Number.isFinite(yuan) || yuan === 0) {
+            toast('请输入非零数字', 'error')
+            return
+          }
+          const reason = prompt('备注（可选）', 'admin') || 'admin'
+          const delta_cents = Math.round(yuan * 100)
+          await api(`/admin/users/${id}/balance`, {
+            method: 'POST',
+            body: JSON.stringify({ delta_cents, reason }),
+          })
+          toast(`余额已调整 ${yuan > 0 ? '+' : ''}¥${yuan.toFixed(2)}`, 'success')
+          await loadUsers()
+          return
+        }
         if (btn.dataset.act === 'toggle') {
           const next = btn.dataset.status === 'active' ? 'disabled' : 'active'
           const ok = await confirmDialog(
@@ -298,6 +347,17 @@ function renderUsersTable(items) {
         } else if (btn.dataset.act === 'grant') {
           openGrantModal(u)
           return
+        } else if (btn.dataset.act === 'reset-traffic') {
+          const ok = await confirmDialog(
+            '清零流量',
+            `将「${u.username}」所有权益的已用流量清零，确认？`,
+          )
+          if (!ok) return
+          await api(`/admin/users/${id}/traffic`, {
+            method: 'POST',
+            body: JSON.stringify({ reset: true }),
+          })
+          toast('流量已清零', 'success')
         }
         await refreshAll()
       } catch (e) {
@@ -327,6 +387,11 @@ function openUserDetail(user) {
   $('ud-expire').value = ent > 0 ? fmtTime(ent) : '无付费权益'
   $('ud-pass').value = ''
   setError('ud-error', '')
+  const balEl = $('ud-balance')
+  if (balEl) {
+    const y = user.balance_yuan || ((Number(user.balance_cents) || 0) / 100).toFixed(2)
+    balEl.textContent = `¥${y}`
+  }
   const box = $('ud-purchases')
   const list = user.purchases || []
   if (!list.length) {
@@ -596,7 +661,7 @@ async function loadCoupons() {
     btn.onclick = async () => {
       try {
         if (btn.dataset.act === 'del') {
-          const ok = await showConfirm('删除兑换码', '确定删除该兑换码？')
+          const ok = await confirmDialog('删除兑换码', '确定删除该兑换码？')
           if (!ok) return
           await api(`/admin/coupons/${btn.dataset.id}`, { method: 'DELETE' })
           toast('已删除', 'success')
@@ -679,6 +744,13 @@ async function loadPlans() {
         <span class="cell-sub mono">${escapeHtml(isSys ? '' : p.source_url || '')}</span>
       </td>
       <td>${p.duration_days || p.trial_days || 30} 天</td>
+      <td>${
+        isSys
+          ? '—'
+          : Number(p.traffic_bytes || 0) > 0
+            ? `${Math.round((Number(p.traffic_bytes) / (1024 * 1024 * 1024)) * 10) / 10} GB`
+            : '<span class="badge warn">不限流量</span>'
+      }</td>
       <td>${escapeHtml(p.description || '—')}</td>
       <td class="col-actions">
         <div class="actions">
@@ -813,6 +885,18 @@ function openPlanModal(row) {
   $('plan-price').value = row ? ((row.price_cents || 0) / 100).toFixed(2) : '0'
   $('plan-price').disabled = Boolean(isSys)
   $('plan-days').value = row?.duration_days || row?.trial_days || 30
+  // traffic: bytes → GB for form (0 = unlimited). New product default 100 GB.
+  const tb = Number(row?.traffic_bytes || 0)
+  $('plan-traffic-gb').value = row
+    ? tb > 0
+      ? Math.round((tb / (1024 * 1024 * 1024)) * 1000) / 1000
+      : 0
+    : 100
+  $('plan-traffic-gb').disabled = Boolean(isSys)
+  if ($('plan-traffic-reset')) {
+    $('plan-traffic-reset').value = row?.traffic_reset === 'monthly' ? 'monthly' : 'never'
+    $('plan-traffic-reset').disabled = Boolean(isSys)
+  }
   $('plan-desc').value = row?.description || ''
   $('plan-sale').value = row && row.for_sale === false ? '0' : '1'
   $('plan-sale').disabled = Boolean(isSys)
@@ -826,6 +910,9 @@ function openPlanModal(row) {
 async function savePlanModal() {
   setError('modal-plan-error', '')
   try {
+    const gb = Number($('plan-traffic-gb')?.value || 0)
+    const traffic_bytes =
+      !Number.isFinite(gb) || gb <= 0 ? 0 : Math.floor(gb * 1024 * 1024 * 1024)
     const payload = {
       name: $('plan-name').value.trim(),
       source_id: $('plan-source').value || null,
@@ -833,6 +920,8 @@ async function savePlanModal() {
       price_cents: Math.round(Number($('plan-price').value || 0) * 100),
       for_sale: $('plan-sale').value === '1',
       description: $('plan-desc').value.trim(),
+      traffic_bytes,
+      traffic_reset: $('plan-traffic-reset')?.value || 'never',
     }
     if (!payload.name) throw new Error('请填写商品名')
     const id = $('plan-id').value
@@ -862,6 +951,31 @@ async function loadSettings() {
   $('set-product').value = s.product_name || 'Fork'
   $('set-register').value = s.allow_register || '1'
   $('set-default-plan').value = s.default_plan || 'trial'
+  if ($('set-max-devices')) $('set-max-devices').value = s.max_devices ?? 3
+  if ($('set-invite-on')) $('set-invite-on').value = s.invite_enabled === '0' ? '0' : '1'
+  if ($('set-invite-days')) $('set-invite-days').value = s.invite_reward_days ?? 3
+  if ($('set-invite-traffic')) $('set-invite-traffic').value = s.invite_reward_traffic_gb ?? 5
+  if ($('set-invitee-days')) $('set-invitee-days').value = s.invitee_reward_days ?? 1
+  if ($('set-invitee-traffic')) $('set-invitee-traffic').value = s.invitee_reward_traffic_gb ?? 1
+  if ($('set-checkin-on')) $('set-checkin-on').value = s.checkin_enabled === '0' ? '0' : '1'
+  if ($('set-checkin-free-days'))
+    $('set-checkin-free-days').value = s.checkin_free_days ?? s.checkin_reward_days ?? 0
+  if ($('set-checkin-free-gb'))
+    $('set-checkin-free-gb').value = s.checkin_free_traffic_gb ?? s.checkin_reward_traffic_gb ?? 1
+  if ($('set-checkin-paid-days'))
+    $('set-checkin-paid-days').value = s.checkin_paid_days ?? s.checkin_reward_days ?? 1
+  if ($('set-checkin-paid-gb'))
+    $('set-checkin-paid-gb').value = s.checkin_paid_traffic_gb ?? 2
+  if ($('set-checkin-paid-free-gb'))
+    $('set-checkin-paid-free-gb').value = s.checkin_paid_extra_free_gb ?? 0
+  if ($('set-checkin-streaks')) {
+    const st = s.checkin_streaks
+    $('set-checkin-streaks').value =
+      typeof st === 'string' ? st : st ? JSON.stringify(st) : '[]'
+  }
+  if ($('set-support-tg')) $('set-support-tg').value = s.support_tg || 'https://t.me/forkdl'
+  if ($('set-paid-unlim'))
+    $('set-paid-unlim').value = s.allow_paid_unlimited_traffic === '1' ? '1' : '0'
   const u = s.client_update || {}
   if ($('upd-enabled')) {
     $('upd-enabled').value = u.enabled === false ? '0' : '1'
@@ -875,6 +989,248 @@ async function loadSettings() {
   }
 }
 
+async function loadOps() {
+  await Promise.all([loadBackups(), loadAudit()])
+  // health is on-demand via button
+}
+
+function orderStatusBadge(status) {
+  const map = {
+    paid: ['ok', '已支付'],
+    pending: ['warn', '待支付'],
+    pending_payment: ['warn', '待支付'],
+    refunded: ['off', '已退款'],
+    cancelled: ['neutral', '已取消'],
+    expired: ['neutral', '已过期'],
+  }
+  const [cls, label] = map[status] || ['neutral', status || '—']
+  return `<span class="badge ${cls}">${escapeHtml(label)}</span>`
+}
+
+function orderKindLabel(kind) {
+  return kind === 'balance_topup' ? '余额充值' : '套餐'
+}
+
+async function loadOrdersAdmin() {
+  if (!$('orders-body')) return
+  const { items } = await api('/admin/orders')
+  const body = $('orders-body')
+  if (!items?.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">暂无订单</td></tr>`
+    return
+  }
+  body.innerHTML = items
+    .map((o) => {
+      const yuan = ((o.money_cents || 0) / 100).toFixed(2)
+      const bal =
+        o.balance_applied_cents > 0
+          ? `余额抵 ¥${((o.balance_applied_cents || 0) / 100).toFixed(2)}`
+          : ''
+      const pay = o.pay_type ? `支付 ${o.pay_type}` : ''
+      return `<tr>
+        <td><span class="cell-title">${escapeHtml(o.username || '')}</span>
+          <span class="cell-sub mono">${escapeHtml(o.out_trade_no || o.id)}</span></td>
+        <td><span class="cell-title">${escapeHtml(orderKindLabel(o.order_kind))} · ${escapeHtml(o.product_name || '')}</span>
+          <span class="cell-sub">${escapeHtml([bal, pay].filter(Boolean).join(' · ') || '—')}</span></td>
+        <td class="mono">¥${yuan}</td>
+        <td>${orderStatusBadge(o.status)}
+          <span class="cell-sub">${o.trade_no ? '渠道 ' + escapeHtml(o.trade_no) : ''}</span></td>
+        <td class="mono"><span class="cell-title" style="font-size:12px">下单 ${fmtTime(o.created_at)}</span>
+          <span class="cell-sub">${o.paid_at ? '支付 ' + fmtTime(o.paid_at) : o.refunded_at ? '退款 ' + fmtTime(o.refunded_at) : ''}</span></td>
+        <td class="col-actions"><div class="actions">
+          ${
+            o.status === 'pending' || o.status === 'pending_payment' || o.status === 'paid'
+              ? `<button type="button" class="btn btn-sm btn-ghost" data-act="refund" data-id="${o.id}" data-status="${o.status}" data-kind="${o.order_kind || ''}">${
+                  o.status === 'paid' ? '退款' : '取消'
+                }</button>`
+              : '—'
+          }
+        </div></td>
+      </tr>`
+    })
+    .join('')
+  body.querySelectorAll('button[data-act="refund"]').forEach((btn) => {
+    btn.onclick = async () => {
+      const paid = btn.dataset.status === 'paid'
+      const topup = btn.dataset.kind === 'balance_topup'
+      const ok = await confirmDialog(
+        paid ? (topup ? '撤销充值' : '退款到余额') : '取消订单',
+        paid
+          ? topup
+            ? '将扣回用户已到账余额（不做渠道原路退款）。'
+            : '将撤销该订单权益，并把订单金额退回用户站内余额（不做支付渠道原路退款）。'
+          : '确认取消未支付订单？预扣余额会退回。',
+      )
+      if (!ok) return
+      try {
+        const r = await api(`/admin/orders/${btn.dataset.id}/refund`, {
+          method: 'POST',
+          body: JSON.stringify({ note: 'admin' }),
+        })
+        if (paid) {
+          if (topup) {
+            toast(`已扣回余额 ¥${((Number(r.balance_clawback_cents) || 0) / 100).toFixed(2)}`, 'success')
+          } else {
+            const yuan = ((Number(r.balance_credited_cents) || 0) / 100).toFixed(2)
+            toast(`已退款到余额 ¥${yuan}，权益已撤销`, 'success')
+          }
+        } else {
+          toast('已取消', 'success')
+        }
+        await loadOrdersAdmin()
+      } catch (e) {
+        toast(e.message, 'error')
+      }
+    }
+  })
+}
+
+async function loadTicketsAdmin() {
+  if (!$('tickets-body')) return
+  const st = $('ticket-filter-status')?.value || ''
+  const q = st ? `?status=${encodeURIComponent(st)}` : ''
+  const { items } = await api('/admin/tickets' + q)
+  const body = $('tickets-body')
+  if (!items?.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="5">暂无工单</td></tr>`
+    return
+  }
+  const cat = { payment: '支付', traffic: '流量', account: '账号', connection: '连接', other: '其他' }
+  const stMap = {
+    open: ['warn', '待处理'],
+    replied: ['ok', '已回复'],
+    closed: ['neutral', '已关闭'],
+  }
+  body.innerHTML = items
+    .map((t) => {
+      const [cls, label] = stMap[t.status] || ['neutral', t.status]
+      const last = t.last_message?.body || ''
+      return `<tr>
+        <td><span class="cell-title">${escapeHtml(t.username || '')}</span>
+          <span class="cell-sub mono">${escapeHtml(t.id)}</span></td>
+        <td><span class="cell-title">${escapeHtml(t.subject || '')}</span>
+          <span class="cell-sub">${escapeHtml(cat[t.category] || t.category || '')} · ${escapeHtml(last)}</span></td>
+        <td><span class="badge ${cls}">${escapeHtml(label)}</span></td>
+        <td class="mono">${fmtTime(t.updated_at || t.created_at)}</td>
+        <td class="col-actions"><div class="actions">
+          <button type="button" class="btn btn-sm btn-secondary" data-act="view" data-id="${t.id}">处理</button>
+        </div></td>
+      </tr>`
+    })
+    .join('')
+  body.querySelectorAll('button[data-act="view"]').forEach((btn) => {
+    btn.onclick = () => void openTicketAdmin(btn.dataset.id)
+  })
+}
+
+async function openTicketAdmin(id) {
+  try {
+    const { ticket } = await api(`/admin/tickets/${id}`)
+    const msgs = (ticket.messages || [])
+      .map(
+        (m) =>
+          `[${m.role === 'admin' ? '客服' : '用户'} ${fmtTime(m.at)}] ${m.author || ''}\n${m.body}`,
+      )
+      .join('\n\n')
+    const reply = prompt(
+      `工单：${ticket.subject}\n用户：${ticket.username}\n状态：${ticket.status}\n\n--- 对话 ---\n${msgs}\n\n输入回复（取消=不回复；输入 close 关闭工单）：`,
+      '',
+    )
+    if (reply == null) return
+    if (String(reply).trim().toLowerCase() === 'close') {
+      await api(`/admin/tickets/${id}/close`, { method: 'POST', body: '{}' })
+      toast('工单已关闭', 'success')
+    } else if (String(reply).trim()) {
+      await api(`/admin/tickets/${id}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ body: reply.trim() }),
+      })
+      toast('已回复', 'success')
+    }
+    await loadTicketsAdmin()
+  } catch (e) {
+    toast(e.message, 'error')
+  }
+}
+
+async function loadBackups() {
+  if (!$('backup-body')) return
+  const { items } = await api('/admin/backups')
+  const body = $('backup-body')
+  if (!items?.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="4">暂无备份</td></tr>`
+    return
+  }
+  body.innerHTML = items
+    .slice(0, 20)
+    .map(
+      (b) => `<tr>
+      <td class="mono">${escapeHtml(b.name)}</td>
+      <td>${Math.round((b.bytes || 0) / 1024)} KB</td>
+      <td class="mono">${fmtTime(b.mtime)}</td>
+      <td class="col-actions"><button type="button" class="btn btn-sm btn-ghost" data-name="${escapeHtml(
+        b.name,
+      )}">恢复</button></td>
+    </tr>`,
+    )
+    .join('')
+  body.querySelectorAll('button').forEach((btn) => {
+    btn.onclick = async () => {
+      const ok = await confirmDialog('恢复备份', `将用 ${btn.dataset.name} 覆盖当前数据，先自动再备份一份。`)
+      if (!ok) return
+      try {
+        await api('/admin/backups/restore', {
+          method: 'POST',
+          body: JSON.stringify({ name: btn.dataset.name }),
+        })
+        toast('已恢复', 'success')
+        await refreshAll()
+      } catch (e) {
+        toast(e.message, 'error')
+      }
+    }
+  })
+}
+
+async function loadAudit() {
+  if (!$('audit-body')) return
+  const { items } = await api('/admin/audit?limit=80')
+  const body = $('audit-body')
+  if (!items?.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="4">暂无日志</td></tr>`
+    return
+  }
+  body.innerHTML = items
+    .map(
+      (a) => `<tr>
+      <td class="mono">${fmtTime(a.at)}</td>
+      <td>${escapeHtml(a.actor || '')}<span class="cell-sub">${escapeHtml(a.actor_type || '')}</span></td>
+      <td class="mono">${escapeHtml(a.action || '')}</td>
+      <td class="mono">${escapeHtml(String(a.target || '').slice(0, 40))}</td>
+    </tr>`,
+    )
+    .join('')
+}
+
+async function loadInvitesAdmin() {
+  if (!$('invites-body')) return
+  const { items } = await api('/admin/invites')
+  const body = $('invites-body')
+  if (!items?.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="3">暂无运营邀请码</td></tr>`
+    return
+  }
+  body.innerHTML = items
+    .map(
+      (c) => `<tr>
+      <td class="mono">${escapeHtml(c.code)}</td>
+      <td>${c.used_count || 0}${c.max_uses ? ' / ' + c.max_uses : ' / ∞'}</td>
+      <td>${escapeHtml(c.note || '—')}</td>
+    </tr>`,
+    )
+    .join('')
+}
+
 async function refreshAll() {
   await loadStats()
   await loadSources()
@@ -883,6 +1239,10 @@ async function refreshAll() {
   await loadAnnouncements()
   await loadSettings()
   if (state.tab === 'coupons') await loadCoupons()
+  if (state.tab === 'orders') await loadOrdersAdmin()
+  if (state.tab === 'tickets') await loadTicketsAdmin()
+  if (state.tab === 'invites') await loadInvitesAdmin()
+  if (state.tab === 'ops') await loadOps()
 }
 
 if ($('btn-create-coupon')) {
@@ -1174,11 +1534,105 @@ $('btn-save-settings').onclick = async () => {
         product_name: $('set-product').value.trim() || 'Fork',
         allow_register: $('set-register').value,
         default_plan: $('set-default-plan').value.trim() || 'trial',
+        max_devices: Number($('set-max-devices')?.value || 3),
+        invite_enabled: $('set-invite-on')?.value || '1',
+        invite_reward_days: Number($('set-invite-days')?.value || 3),
+        invite_reward_traffic_gb: Number($('set-invite-traffic')?.value || 5),
+        invitee_reward_days: Number($('set-invitee-days')?.value || 1),
+        invitee_reward_traffic_gb: Number($('set-invitee-traffic')?.value || 1),
+        checkin_enabled: $('set-checkin-on')?.value || '1',
+        checkin_free_days: Number($('set-checkin-free-days')?.value || 0),
+        checkin_free_traffic_gb: Number($('set-checkin-free-gb')?.value || 1),
+        checkin_paid_days: Number($('set-checkin-paid-days')?.value || 1),
+        checkin_paid_traffic_gb: Number($('set-checkin-paid-gb')?.value || 2),
+        checkin_paid_extra_free_gb: Number($('set-checkin-paid-free-gb')?.value || 0),
+        checkin_streaks: (() => {
+          const raw = $('set-checkin-streaks')?.value?.trim() || '[]'
+          try {
+            JSON.parse(raw)
+            return raw
+          } catch {
+            throw new Error('连签奖励 JSON 格式错误')
+          }
+        })(),
+        // legacy aliases
+        checkin_reward_days: Number($('set-checkin-free-days')?.value || 0),
+        checkin_reward_traffic_gb: Number($('set-checkin-free-gb')?.value || 1),
+        support_tg: $('set-support-tg')?.value.trim() || 'https://t.me/forkdl',
+        allow_paid_unlimited_traffic: $('set-paid-unlim')?.value || '0',
       }),
     })
     toast('设置已保存', 'success')
   } catch (e) {
     toast(e.message, 'error')
+  }
+}
+
+if ($('btn-health')) {
+  $('btn-health').onclick = async () => {
+    try {
+      const h = await api('/admin/health')
+      $('health-out').textContent = (h.checks || [])
+        .map((c) => `${c.ok ? '✓' : '✗'} ${c.name}: ${c.detail}`)
+        .join('\n')
+      toast(h.ok ? '健康检查通过' : '存在异常项', h.ok ? 'success' : 'error')
+    } catch (e) {
+      toast(e.message, 'error')
+    }
+  }
+}
+if ($('btn-backup')) {
+  $('btn-backup').onclick = async () => {
+    try {
+      const r = await api('/admin/backups', { method: 'POST', body: '{}' })
+      toast('备份完成 ' + (r.name || ''), 'success')
+      await loadBackups()
+    } catch (e) {
+      toast(e.message, 'error')
+    }
+  }
+}
+if ($('btn-refresh-orders')) $('btn-refresh-orders').onclick = () => void loadOrdersAdmin()
+if ($('btn-refresh-tickets')) $('btn-refresh-tickets').onclick = () => void loadTicketsAdmin()
+if ($('ticket-filter-status')) {
+  $('ticket-filter-status').onchange = () => void loadTicketsAdmin()
+}
+if ($('btn-refresh-audit')) $('btn-refresh-audit').onclick = () => void loadAudit()
+if ($('btn-create-invite')) {
+  $('btn-create-invite').onclick = async () => {
+    try {
+      const r = await api('/admin/invites', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: $('inv-code')?.value.trim() || undefined,
+          max_uses: Number($('inv-max')?.value || 0),
+        }),
+      })
+      toast('邀请码 ' + r.code, 'success')
+      if ($('inv-code')) $('inv-code').value = ''
+      await loadInvitesAdmin()
+    } catch (e) {
+      toast(e.message, 'error')
+    }
+  }
+}
+if ($('btn-export-orders')) {
+  $('btn-export-orders').onclick = async (e) => {
+    e.preventDefault()
+    try {
+      const res = await fetch(API + '/admin/orders/export', {
+        headers: { Authorization: 'Bearer ' + state.token },
+      })
+      if (!res.ok) throw new Error('导出失败')
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'orders.csv'
+      a.click()
+      URL.revokeObjectURL(a.href)
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 }
 

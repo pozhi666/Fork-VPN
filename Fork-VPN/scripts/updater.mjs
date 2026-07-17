@@ -1,3 +1,10 @@
+// =============================================================================
+// FORK VPN — 此脚本生成上游 Clash Verge Rev 的 update.json / update-proxy.json
+// 并上传到 GitHub Release 的 updater tag。Fork 不再使用此脚本：Fork 的 updater
+// endpoint 为 https://your-domain.example/api/v1/client/updater/latest.json，由后端
+// 管理 API 生成 latest.json。保留此文件供参考，请勿在 Fork 发布流程中调用。
+// 对应的 .github/workflows/updater.yml 已隔离禁用。
+// =============================================================================
 import { context, getOctokit } from '@actions/github'
 
 import { resolveUpdateLog, resolveUpdateLogDefault } from './updatelog.mjs'

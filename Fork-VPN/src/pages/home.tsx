@@ -222,18 +222,19 @@ const HomePage = () => {
   } | null>(null)
 
   // 卡片显示状态
+  // Slim default: core 4 only; extras off (user can re-enable in settings)
   const defaultCards = useMemo<HomeCardsSettings>(
     () => ({
       info: false,
       profile: true,
       proxy: true,
-      network: true,
+      network: false,
       mode: true,
       traffic: true,
-      clashinfo: true,
-      systeminfo: true,
-      test: true,
-      ip: true,
+      clashinfo: false,
+      systeminfo: false,
+      test: false,
+      ip: false,
     }),
     [],
   )
@@ -366,9 +367,9 @@ const HomePage = () => {
   return (
     <BasePage
       title={t('home.page.title')}
-      contentStyle={{ padding: 2 }}
+      contentStyle={{ padding: '16px 12px 20px' }}
       header={
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
           <Tooltip title={t('home.page.tooltips.lightweightMode')} arrow>
             <IconButton
               onClick={async () => await entry_lightweight_mode()}
@@ -392,9 +393,8 @@ const HomePage = () => {
       }
     >
       <AnnouncementBanner />
-      <Grid container spacing={1.5} columns={{ xs: 6, sm: 6, md: 12 }}>
+      <Grid container spacing={2} columns={{ xs: 6, sm: 6, md: 12 }}>
         {criticalCards}
-
         {nonCriticalCards}
       </Grid>
 

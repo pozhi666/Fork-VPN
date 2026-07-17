@@ -1,12 +1,28 @@
 name: Updater CI
+# =============================================================================
+# FORK VPN — 上游 updater 工作流（已隔离）
+# -----------------------------------------------------------------------------
+# 此 workflow 调用 scripts/updater.mjs，生成上游 Clash Verge Rev 的
+# update.json / update-proxy.json 并上传到 GitHub Release 的 updater tag，
+# 供上游 tauri updater endpoint 使用。Fork 的 updater endpoint 已改为
+# https://your-domain.example/api/v1/client/updater/latest.json，由后端管理 API
+# 生成 latest.json，不再需要此 workflow。
+# trigger 已禁用。保留文件供参考。
+# =============================================================================
 
-on: workflow_dispatch
+on:
+  # FORK: 已禁用所有触发。原 workflow_dispatch 已移除。
+  push:
+    branches:
+      - 'fork-vpn-disabled-never-match'
 permissions: write-all
 env:
   HUSKY: 0
 
 jobs:
   release-update:
+    # FORK: 禁用此 job，防止误发上游 update.json。
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -31,6 +47,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-update-for-fixed-webview2:
+    # FORK: 禁用此 job，防止误发上游 update.json。
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

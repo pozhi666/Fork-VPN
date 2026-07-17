@@ -25,13 +25,9 @@ import { BasePage } from '@/components/base'
 import { AnnouncementBanner } from '@/components/home/announcement-center'
 import { PRODUCT_NAME } from '@/config/commercial'
 import { useAuth } from '@/providers/auth-provider'
-import { open } from '@tauri-apps/plugin-shell'
-
 import {
   commercialEnsureAccessSynced,
   commercialGetCatalog,
-  commercialPurchase,
-  commercialWaitOrderPaid,
   type CatalogItem,
   type CatalogResponse,
 } from '@/services/commercial'
@@ -49,7 +45,6 @@ export default function CommercialStorePage() {
   const location = useLocation()
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [buyingId, setBuyingId] = useState<string | null>(null)
   const [lastSync, setLastSync] = useState<string>('')
   const [lastCatalogAt, setLastCatalogAt] = useState('')
 
@@ -133,46 +128,15 @@ export default function CommercialStorePage() {
     }
   })
 
-  const onBuy = useLockFn(async (item: CatalogItem) => {
-    setBuyingId(item.id)
-    try {
-      const result = await commercialPurchase(item.id)
-
-      if (result.need_pay && result.pay_url && result.order_id) {
-        try {
-          await open(result.pay_url)
-        } catch {
-          // fallback: copy-friendly notice
-          showNotice.error('无法自动打开浏览器，请手动打开支付链接')
-          console.info('[pay_url]', result.pay_url)
-        }
-        showNotice.success('已打开支付页，请完成付款…')
-        setLastSync('等待支付确认中…')
-        const paid = await commercialWaitOrderPaid(result.order_id)
-        showNotice.success(paid.message || `已开通 ${item.name}`)
-        await syncOfficial()
-        await load()
-        await refreshProxyData()
-        setLastSync('支付成功，节点已同步，请到「代理」页查看')
-        return
-      }
-
-      showNotice.success(result.message || '开通成功')
-      await load()
-      await refreshProxyData()
-      setLastSync('购买后已自动同步，请到「代理」页查看')
-    } catch (err: any) {
-      showNotice.error(err)
-    } finally {
-      setBuyingId(null)
-    }
-  })
+  const goDetail = (item: CatalogItem) => {
+    navigate(`/store/${item.id}`)
+  }
 
   return (
     <BasePage
       title="订阅商城"
       header={
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} sx={{ display: 'flex', alignItems: 'center' }}>
           <Button
             size="small"
             variant="outlined"
@@ -218,9 +182,12 @@ export default function CommercialStorePage() {
 
         <Stack
           direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{ mb: 1 }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 1,
+          }}
         >
           <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CardGiftcardRounded color="success" /> 免费专区
@@ -256,8 +223,15 @@ export default function CommercialStorePage() {
                 }}
               >
                 <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography fontWeight={700}>{item.name}</Typography>
+                  <Stack
+                    direction="row"
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 700 }}>{item.name}</Typography>
                     {item.owned ? (
                       <Chip size="small" color="success" label="已开通" />
                     ) : (
@@ -278,11 +252,9 @@ export default function CommercialStorePage() {
                     variant={item.owned ? 'outlined' : 'contained'}
                     color="success"
                     startIcon={<ShoppingCartCheckoutRounded />}
-                    disabled={Boolean(item.owned)}
-                    loading={buyingId === item.id}
-                    onClick={() => void onBuy(item)}
+                    onClick={() => goDetail(item)}
                   >
-                    {item.owned ? '已开通' : '免费开通'}
+                    {item.owned ? '查看详情' : '查看并开通'}
                   </Button>
                   {item.owned ? (
                     <Button size="small" onClick={() => void onSync()} loading={syncing}>
@@ -322,8 +294,15 @@ export default function CommercialStorePage() {
                 }}
               >
                 <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography fontWeight={700}>{item.name}</Typography>
+                  <Stack
+                    direction="row"
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 700 }}>{item.name}</Typography>
                     {item.owned ? (
                       <Chip size="small" color="success" label="已开通" />
                     ) : (
@@ -343,11 +322,9 @@ export default function CommercialStorePage() {
                     size="small"
                     variant={item.owned ? 'outlined' : 'contained'}
                     startIcon={<ShoppingCartCheckoutRounded />}
-                    disabled={Boolean(item.owned)}
-                    loading={buyingId === item.id}
-                    onClick={() => void onBuy(item)}
+                    onClick={() => goDetail(item)}
                   >
-                    {item.owned ? '已拥有' : '立即开通'}
+                    {item.owned ? '查看详情' : '查看详情 / 下单'}
                   </Button>
                   {item.owned ? (
                     <Button size="small" onClick={() => void onSync()} loading={syncing}>

@@ -9,7 +9,7 @@ import ShoppingCartRoundedIcon from '@mui/icons-material/ShoppingCartRounded'
 import SubjectRoundedIcon from '@mui/icons-material/SubjectRounded'
 import WifiRoundedIcon from '@mui/icons-material/WifiRounded'
 import { lazy, Suspense, type ComponentType } from 'react'
-import { createBrowserRouter, RouteObject } from 'react-router'
+import { createBrowserRouter, Outlet, RouteObject } from 'react-router'
 
 import ConnectionsSvg from '@/assets/image/itemicon/connections.svg?react'
 import HomeSvg from '@/assets/image/itemicon/home.svg?react'
@@ -22,9 +22,19 @@ import UnlockSvg from '@/assets/image/itemicon/unlock.svg?react'
 import { ensureLanguageSections } from '@/services/i18n'
 
 import { COMMERCIAL_MODE } from '@/config/commercial'
+import { AuthProvider } from '@/providers/auth-provider'
 
 import Layout from './_layout'
 import HomePage from './home'
+
+/** Ensures every route (including Layout / login) is under AuthProvider. */
+function AuthRoot() {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  )
+}
 
 const waitForWarmupIdle = (signal: AbortSignal) =>
   new Promise<void>((resolve) => {
@@ -216,8 +226,14 @@ export const preloadNavigationRoutes = async (signal: AbortSignal) => {
 
 const LoginPage = lazy(() => import('./login'))
 const RegisterPage = lazy(() => import('./register'))
+const ForgotPasswordPage = lazy(() => import('./forgot-password'))
+
+const ProductPage = lazy(() => import('./commercial-product'))
 
 export const router = createBrowserRouter([
+  {
+    Component: AuthRoot,
+    children: [
   {
     path: '/login',
     Component: () => (
@@ -235,14 +251,38 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/forgot-password',
+    Component: () => (
+      <Suspense fallback={null}>
+        <ForgotPasswordPage />
+      </Suspense>
+    ),
+  },
+  {
     path: '/',
     Component: Layout,
-    children: navItems.map(
-      (item) =>
-        ({
-          path: item.path,
-          Component: item.Component,
-        }) as RouteObject,
-    ),
+    children: [
+      ...navItems.map(
+        (item) =>
+          ({
+            path: item.path,
+            Component: item.Component,
+          }) as RouteObject,
+      ),
+      ...(COMMERCIAL_MODE
+        ? [
+            {
+              path: '/store/:productId',
+              Component: () => (
+                <Suspense fallback={null}>
+                  <ProductPage />
+                </Suspense>
+              ),
+            } as RouteObject,
+          ]
+        : []),
+    ],
+  },
+    ],
   },
 ])
