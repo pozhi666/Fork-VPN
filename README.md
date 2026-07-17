@@ -1,96 +1,238 @@
 # Fork VPN
 
 > 基于 [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) 的商业化桌面客户端 · 可选自建后端  
-> 当前版本：**0.2.0**
+> 当前版本：**0.2.0**（基于上游 Verge Rev 二改）
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](./Fork-VPN/LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2-orange.svg)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
 
-Fork 在保留 Clash Meta / Mihomo 能力的同时，增加 **账号体系、订阅商城、官方线路下发、个人中心、余额与工单** 等，并与原版 Clash Verge **数据目录与端口隔离**，可同时运行。
+Fork 在保留 Clash Meta / Mihomo 能力的同时，增加 **账号体系、订阅商城、官方线路下发、个人中心、站内余额、工单、签到与双流量钱包** 等，并与原版 Clash Verge **数据目录与端口隔离**，可同时运行。
 
 > **合规说明**：客户端基于 GPL-3.0 上游二次开发。分发二进制时须提供对应源码并保留许可证。  
-> **请勿提交** 生产密钥、用户数据与服务器凭据。本仓库为**脱敏**源码。
+> 本仓库为**脱敏**开源发布；**请勿提交** 生产密钥、用户数据与服务器凭据。
 
 ---
 
-## 目录结构
-
-```text
-.
-├── Fork-VPN/        # 桌面客户端（Tauri 2 + React + Rust）
-├── fork-backend/    # 商业 API 与管理后台
-├── DESENSITIZE.md   # 脱敏说明
-└── README.md
-```
-
----
-
-## 功能概览
+## ✨ 特性
 
 ### 客户端（`Fork-VPN/`）
 
-- 注册 / 登录、会话校验、找回密码（邮箱 OTP）
-- 官方线路同步（客户端不暴露源站 URL）
-- 订阅商城、易支付、站内余额
-- 个人中心：权益、订单、工单、改密
-- 签到与双流量钱包（免费 / 付费）
-- 与原版 Clash Verge 端口 / AppId / 数据目录隔离
+- **商业模式**：注册 / 登录、会话校验、退出登录、邮箱验证码找回密码  
+- **官方线路**：登录后同步服务端合并后的订阅（客户端不暴露源站 URL）  
+- **订阅商城**：免费 / 付费商品、易支付收银台、订单轮询开通  
+- **站内余额**：充值档位 + 自定义金额，购买时可抵扣 / 全额余额支付  
+- **个人中心**：账号信息、权益列表、订单记录、工单、修改密码、继续支付  
+- **签到**：按是否付费用户区分奖励；免费 / 付费流量钱包独立  
+- **开放导入**：可自行导入远程 / 本地订阅；**官方配置**受保护，不可误删改  
+- **公告与版本提示**：运营公告、可选 / 强制更新提示（安装包建议走签名更新通道）  
+- **运行隔离**：独立 AppId、端口与 IPC，不与原版 Clash Verge 抢配置  
 
-### 后端（`fork-backend/`）
+### 后端（`fork-backend/`，可选）
 
-- JWT 用户体系与管理员
-- 商品 / 订阅源 / 权益 / 退款撤权
-- 易支付下单与回调
-- 管理后台静态面板（`/forkvpnadmin/`）
+- 用户注册登录（JWT）与设备数限制  
+- 商品 / 订阅源 / 权益（`purchases`）；退款撤权 + 账户额度  
+- 易支付下单与异步回调；余额流水  
+- 签到、邀请奖励、工单  
+- 管理后台静态面板（用户、源、商品、订单、退款、版本更新等）  
+- 生产环境配置校验（强 JWT、无默认管理员密码等）  
 
 ---
 
-## 快速开始
+## 📁 目录结构
 
-### 环境
+```text
+.
+├── Fork-VPN/          # 桌面客户端（Tauri 2 + React + Rust）
+├── fork-backend/      # 商业 API 与管理后台
+├── DESENSITIZE.md     # 脱敏说明（本包做了哪些剔除/替换）
+├── FILELIST.json      # 文件清单（打包生成）
+└── README.md
+```
 
-- Node.js 20+、[pnpm](https://pnpm.io/)
-- Rust（stable）+ [Tauri 依赖](https://v2.tauri.app/start/prerequisites/)
+> 说明：公开仓库中客户端目录统一为 **`Fork-VPN/`**（与本机开发目录名可能不同）。
 
-### 1. 后端
+---
+
+## 📣 社区与产品
+
+| | 链接 |
+|--|------|
+| **Telegram 频道** | [t.me/forkdl](https://t.me/forkdl) |
+| **正在运营的产品** | [https://forkvpn.i58.xyz](https://forkvpn.i58.xyz) |
+| **GitHub 源码** | [pozhi666/Fork-VPN](https://github.com/pozhi666/Fork-VPN) |
+
+---
+
+## 🖼️ 功能一览
+
+| 模块 | 说明 |
+|------|------|
+| 登录 / 注册 / 找回密码 | 账号接入自建后端，支持邮箱 OTP |
+| 订阅 | 导入自有订阅 + 同步官方线路 |
+| 商城 | 开通免费 / 付费商品；易支付或余额 |
+| 个人中心 | 权益、订单、余额充值、工单、改密 |
+| 签到 | 双钱包流量；付费判定不含已退款 / 纯免费体验 |
+| 代理 / 规则 / 连接 | 沿用 Clash Verge Rev 能力；进代理页会重新验权 |
+| 管理后台 | 浏览器访问 `/forkvpnadmin/` |
+| 客户端更新 | Tauri 签名更新；清单由后台 `latest.json` 提供 |
+
+---
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Node.js 20+、[pnpm](https://pnpm.io/)  
+- Rust（stable）+ [Tauri 系统依赖](https://v2.tauri.app/start/prerequisites/)  
+- Windows / macOS / Linux  
+
+### 1. 启动后端（可选，本地调试）
 
 ```bash
 cd fork-backend
-cp .env.example .env
 npm install
+cp .env.example .env   # 按说明填写，勿提交真实密钥
 npm run bootstrap-admin -- -u admin -p 'YourStrongPass1'
 npm run dev
 ```
 
-- API：`http://127.0.0.1:8787/api/v1`
-- 管理后台：`http://127.0.0.1:8787/forkvpnadmin/`
+- 管理后台：`http://127.0.0.1:8787/forkvpnadmin/`  
+- 落地页：`http://127.0.0.1:8787/`  
+- API：`http://127.0.0.1:8787/api/v1`  
 
-### 2. 客户端
+```bash
+npm test   # 可选：运行后端测试
+```
+
+### 2. 启动客户端
 
 ```bash
 cd Fork-VPN
 corepack enable
 pnpm install
-pnpm run prebuild
-# 本地后端（PowerShell）:
-# $env:FORK_API_BASE="http://127.0.0.1:8787/api/v1"
+pnpm run prebuild    # 拉取 mihomo 等原生依赖（首次）
+# 开发时指向本地后端：
+# Windows PowerShell:
+$env:FORK_API_BASE="http://127.0.0.1:8787/api/v1"
 pnpm dev
 ```
 
-默认 API 占位为 `https://your-domain.example/api/v1`，本地务必用环境变量覆盖。
+生产构建请使用 **HTTPS** API 地址。商业模式与隔离端口说明见：  
+[`Fork-VPN/COMMERCIAL.md`](./Fork-VPN/COMMERCIAL.md)
+
+### 3. 打包 Windows 安装包（可选）
+
+```powershell
+cd Fork-VPN
+# 若需自动更新签名：
+# $env:TAURI_SIGNING_PRIVATE_KEY = Get-Content $env:USERPROFILE\.tauri\fork.key -Raw
+$env:NODE_OPTIONS = '--max-old-space-size=4096'
+pnpm tauri build
+```
+
+产物一般在：`Fork-VPN/src-tauri/target/release/bundle/nsis/`  
+更新通道说明：[`Fork-VPN/docs/FORK_UPDATER.md`](./Fork-VPN/docs/FORK_UPDATER.md)
 
 ---
 
-## 社区
+## ⚙️ 配置说明
 
-| | |
-|--|--|
-| Telegram | [t.me/forkdl](https://t.me/forkdl) |
-| 源码 | 本仓库 |
+### 客户端
+
+| 变量 / 开关 | 说明 |
+|-------------|------|
+| `FORK_API_BASE` | 后端 API 根路径，如 `https://your.domain/api/v1` 或本地 `http://127.0.0.1:8787/api/v1` |
+| `COMMERCIAL_MODE` | `src/config/commercial.ts` 与 `src-tauri/src/commercial/mod.rs` **需同时**开关 |
+
+与原版隔离的默认端口（示例）：
+
+| 项 | 原版 Clash Verge（约） | Fork |
+|----|------------------------|------|
+| mixed | 7897 | **17897** |
+| socks / http | 7898 / 7899 | **17898 / 17899** |
+| 控制器 | 9097 | **19097** |
+| 数据目录 | `io.github.clash-verge-rev...` | **`com.fork.client`** |
+| 深度链接 | `clash://` | **`fork://`** |
+
+详情见 [`Fork-VPN/COMMERCIAL.md`](./Fork-VPN/COMMERCIAL.md)。
+
+### 后端（环境变量示例）
+
+| 变量 | 说明 |
+|------|------|
+| `FORK_PORT` | 监听端口，默认 `8787` |
+| `FORK_BIND` | 建议生产 `127.0.0.1`，经 Nginx 等反向代理 TLS |
+| `FORK_JWT_SECRET` | JWT 密钥（生产 ≥32 位随机串） |
+| `FORK_JWT_EXPIRES` | 如 `2h` / `7d` |
+| `FORK_PUBLIC_URL` | 对外根地址（支付回调、邮件链接） |
+| `FORK_CORS_ORIGINS` | 允许的 CORS 来源 |
+| `EZPAY_URL` / `EZPAY_PID` / `EZPAY_KEY` | 易支付网关（仅环境变量，勿入库） |
+| `DATABASE_URL` | 可选 Postgres（账本 / 迁移） |
+| 邮件相关 | 用于 OTP / 找回密码（见 `src/mail.js`、`.env.example`） |
+
+完整示例：[`fork-backend/.env.example`](./fork-backend/.env.example)
 
 ---
 
-## 许可证
+## 🔒 安全与开源注意
 
-客户端见 `Fork-VPN/LICENSE`（GPL-3.0）。后端与文档以仓库内说明为准。
+**请勿将以下内容推送到公开仓库：**
+
+- `.env`、JWT / 易支付 / SSH / 数据库等密钥  
+- `fork-backend/data/` 及任何用户 / 订单生产数据  
+- 服务器密码、私钥、真实上游订阅 URL（若敏感）  
+- 内部部署脚本中的主机与凭据  
+
+建议本地忽略：
+
+```gitignore
+# fork-backend
+.env
+data/
+node_modules/
+*.tgz
+```
+
+本仓库打包时已做脱敏（见 [`DESENSITIZE.md`](./DESENSITIZE.md)）：剔除运行时数据与部署脚本，并将示例域名替换为占位符。
+
+分发客户端安装包时，请遵守 **GPL-3.0**：附带或提供对应源码获取方式，并保留版权与许可证声明。
+
+---
+
+## 🗺️ 路线图（节选）
+
+- [x] 账号 / 商城 / 官方同步 / 个人中心  
+- [x] 导入自有订阅 + 官方配置保护  
+- [x] 易支付下单与回调  
+- [x] 站内余额、工单、签到、双流量钱包  
+- [x] 退款撤权 + 客户端重新验权 / 关连接  
+- [x] 与原版隔离的 AppId / 端口 / 更新通道  
+- [ ] 更完善的备份恢复与权限收口文档  
+- [ ] 更完整的支付对账与运营报表  
+- [ ] 跨平台安装包发布流水线完善  
+
+---
+
+## 🙏 致谢
+
+- [Clash Verge](https://github.com/zzzgydi/clash-verge)  
+- [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)  
+- [mihomo (Clash Meta)](https://github.com/MetaCubeX/mihomo)  
+- [Tauri](https://tauri.app/)  
+
+---
+
+## 📄 许可证
+
+客户端主体遵循 **GNU General Public License v3.0 only**（与上游一致）。  
+详见 [`Fork-VPN/LICENSE`](./Fork-VPN/LICENSE)。
+
+`fork-backend` 为配套商业后端示例代码，使用前请自行评估部署安全与合规要求。
+
+---
+
+## ⚠️ 声明
+
+本项目仅供学习与合法用途。请遵守当地法律法规及上游开源协议。  
+使用自建后端提供代理服务时，运营者须自行承担合规与安全责任。
