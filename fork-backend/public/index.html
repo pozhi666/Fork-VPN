@@ -8,6 +8,10 @@
       name="description"
       content="Fork：基于 Clash 内核的商业化桌面客户端。账号体系、订阅商城、一键同步线路。"
     />
+    <link rel="icon" href="/icons/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/icon.png" />
+    <link rel="shortcut icon" href="/icons/icon.ico" />
+    <meta property="og:image" content="https://forkvpn.i58.xyz/icons/icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,11 +24,12 @@
     <div class="bg-glow" aria-hidden="true"></div>
     <header class="nav">
       <a class="brand" href="/">
-        <span class="logo">F</span>
+        <img class="brand-icon" src="/icons/logo.png" width="36" height="36" alt="Fork VPN" />
         <span class="brand-text">Fork</span>
       </a>
       <nav class="nav-links">
         <a href="#features">功能</a>
+        <a href="#guide">使用教程</a>
         <a href="#download">下载</a>
         <a href="#faq">常见问题</a>
         <a href="/opensource.html">开源</a>
@@ -108,6 +113,204 @@
         </div>
       </section>
 
+      <section id="guide" class="section guide">
+        <h2>使用教程</h2>
+        <p class="section-lead">
+          从安装到上网，跟着下面步骤即可。官方节点需在「订阅商城」领取免费体验后同步；也可自行导入机场订阅。
+        </p>
+
+        <div class="guide-flow">
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">01</span>
+              <div>
+                <h3>启动安装程序</h3>
+                <p>双击下载的安装包，在欢迎页点击「下一步」开始安装。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/01.png" alt="Fork VPN 安装欢迎页" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">02</span>
+              <div>
+                <h3>选择安装目录</h3>
+                <p>默认安装到 Program Files。可按需更改路径，确认后点「下一步」。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/02.png" alt="选择安装位置" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">03</span>
+              <div>
+                <h3>等待安装完成</h3>
+                <p>程序会自动解压文件，进度条走完即可，无需额外操作。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/03.png" alt="正在安装" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">04</span>
+              <div>
+                <h3>安装成功</h3>
+                <p>出现「安装完成」提示后，点击「下一步」进入结束页。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/04.png" alt="安装完成" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">05</span>
+              <div>
+                <h3>完成并启动</h3>
+                <p>勾选「运行 Fork VPN」后点「完成」，客户端会自动打开。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/05.png" alt="安装结束并运行" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">06</span>
+              <div>
+                <h3>进入注册</h3>
+                <p>首次使用请先注册账号。在登录页点击「立即注册」。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/06.png" alt="登录页注册入口" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">07</span>
+              <div>
+                <h3>填写注册信息</h3>
+                <p>
+                  填写用户名、邮箱，先「获取验证码」再填入邮箱中的 6 位数字；
+                  设置密码并勾选协议后点「注册并登录」。邀请码选填。
+                </p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/07.png" alt="创建账号表单" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">08</span>
+              <div>
+                <h3>首页入口说明</h3>
+                <p>
+                  登录后进入首页。<strong>订阅商城</strong>用于领取免费体验或购买套餐；
+                  <strong>订阅</strong>页可同步官方线路或导入自己的订阅。
+                  官方节点需先领取权益再同步，登录本身不会自动下发全部节点。
+                </p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/08.png" alt="首页导航说明" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">09</span>
+              <div>
+                <h3>（可选）导入自备订阅</h3>
+                <p>若你有自己的机场订阅，在「订阅」页点击「新建」。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/09.png" alt="订阅页新建配置" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">10</span>
+              <div>
+                <h3>填写订阅链接</h3>
+                <p>
+                  类型选 Remote，填写名称与订阅链接后保存。超时、更新间隔等一般保持默认即可。
+                </p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/10.png" alt="新建远程订阅" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">11</span>
+              <div>
+                <h3>选择节点</h3>
+                <p>
+                  领取官方节点或导入订阅后，打开「代理」页，点击测速，再选择合适的节点。
+                </p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/11.png" alt="代理页选择节点" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">12</span>
+              <div>
+                <h3>（可选）自定义首页卡片</h3>
+                <p>在首页右上角齿轮可勾选要显示的卡片，按需保存即可。</p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/12.png" alt="首页设置" loading="lazy" />
+            </figure>
+          </article>
+
+          <article class="guide-step">
+            <div class="guide-meta">
+              <span class="guide-num">13</span>
+              <div>
+                <h3>开启系统代理</h3>
+                <p>
+                  回到首页：打开「系统代理」开关；模式推荐「规则」。
+                  「全局」强制全部走代理，「直连」则不走代理。顽固软件可尝试虚拟网卡模式（谨慎）。
+                </p>
+              </div>
+            </div>
+            <figure class="guide-fig">
+              <img src="/tutorial/13.png" alt="系统代理与代理模式" loading="lazy" />
+            </figure>
+          </article>
+        </div>
+
+        <p class="guide-tip">
+          遇到问题可先查看下方「常见问题」，或加入
+          <a href="https://t.me/forkdl" target="_blank" rel="noopener noreferrer">Telegram 频道 @forkdl</a>
+          获取公告与更新。
+        </p>
+      </section>
+
       <section id="download" class="section download">
         <div class="dl-card">
           <div>
@@ -137,7 +340,11 @@
         <div class="faq">
           <details open>
             <summary>下载后如何使用？</summary>
-            <p>安装并打开客户端，注册 / 登录账号，点击「同步官方线路」，再到代理页选择节点连接。</p>
+            <p>
+              见上方
+              <a href="#guide">使用教程</a>
+              ：安装 → 注册 → 在订阅商城领取免费体验 → 同步官方线路 → 代理页选节点 → 打开系统代理。
+            </p>
           </details>
           <details>
             <summary>可以导入自己的订阅吗？</summary>
@@ -161,8 +368,8 @@
     </main>
 
     <footer class="footer">
-      <div>
-        <span class="logo sm">F</span>
+      <div class="footer-brand">
+        <img src="/icons/logo.png" width="28" height="28" alt="" />
         <strong>Fork</strong>
       </div>
       <div class="footer-links">
